@@ -2,16 +2,44 @@ using UnityEngine;
 
 public class GameManager : MonoBehaviour
 {
+    public static GameManager Instance
+    {
+        get
+        {
+            return instance;
+        }
+        private set
+        {
+            if (instance == null)
+            {
+                instance = value;
+            }
+            else
+            {
+                Destroy(value);
+            }
+        }
+    }
+    private static GameManager instance;
     public Ghost[] ghosts;
     public Pacman pacman;
     public Transform pellets;
-
+    public Transform[] portals;
+    private int ghostEatingStreak;
+    [SerializeField]
+    private int ghostPoints;
+    [SerializeField]
+    private int pelletPoints;
+    [SerializeField]
+    private int powerPelletPoints;
+    public int SCORE;
     public int score{ get; private set; }
     public int lives{ get; private set; }
 
     private void Start()
     {
         NewGame();
+        instance= this;
     }
 
     private void Update()
@@ -19,12 +47,14 @@ public class GameManager : MonoBehaviour
         if(this.lives <= 0 && Input.anyKeyDown){
             NewGame();
         }
+        SCORE = score;
     }
 
     private void NewGame(){
         SetScore(0);
         SetLives(3);
         NewRound();
+        ghostEatingStreak = 0;
     }
 
     private void NewRound(){
@@ -62,10 +92,26 @@ public class GameManager : MonoBehaviour
         this.lives = lives;
     }
 
-    public void GhostEaten(Ghost ghost){
-        SetScore(this.score + ghost.points);
-    }
+    public void GhostEaten(){
+        if (pacman.powerPelletActive)
+        {
+        ghostEatingStreak += 1;
+        SetScore(this.score + ghostPoints*ghostEatingStreak);
+        }
+        else
+        {
+            PacmanEaten();
+        }
 
+    }
+    public void PelletEaten()
+    {
+        SetScore(this.score + pelletPoints);
+    }
+    public void PowerPelletEaten()
+    {
+        SetScore(this.score + powerPelletPoints);
+    }
     public void PacmanEaten(){
         this.pacman.gameObject.SetActive(false);
         SetLives(this.lives - 1);
