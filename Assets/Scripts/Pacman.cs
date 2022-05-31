@@ -8,7 +8,8 @@ public class Pacman : MonoBehaviour
     public float speedMultiplier = 1.0f;
     public Vector2 initialDirection;
     public LayerMask obstacleLayer;
-
+    public Node lastNode;
+    public Node destinationNode;
     public new Rigidbody2D rigidbody { get; private set; }
     public Vector2 direction { get; private set; }
     public Vector2 nextDirection { get; private set; }
@@ -31,6 +32,7 @@ public class Pacman : MonoBehaviour
     private void Start()
     {
         ResetState();
+
     }
     public void ResetState()
     {
@@ -113,13 +115,13 @@ public class Pacman : MonoBehaviour
         else if (collision.gameObject.layer == LayerMask.NameToLayer("Pellet"))
         {
             GameManager.Instance.PelletEaten();
-            Destroy(collision.gameObject);
+            collision.gameObject.SetActive(false);
         }
         else if (collision.gameObject.layer == LayerMask.NameToLayer("PowerPellet"))
         {
             StartCoroutine(ActivatePowerPellet());
             GameManager.Instance.PowerPelletEaten();
-            Destroy(collision.gameObject); Destroy(collision.gameObject);
+            collision.gameObject.SetActive(false);
         }
     }
 
