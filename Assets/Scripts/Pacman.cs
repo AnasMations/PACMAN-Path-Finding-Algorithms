@@ -78,6 +78,10 @@ public class Pacman : MonoBehaviour
     {
         if (forced || !Occupied(direction))
         {
+            if (this.direction == -nextDirection)
+            {
+                destinationNode = lastNode;
+            }
             this.direction = direction;
             this.nextDirection = Vector2.zero;
             rigidbody.rotation = Vector3.Angle(this.direction, Vector2.right);
@@ -127,6 +131,10 @@ public class Pacman : MonoBehaviour
         else if (collision.gameObject.layer == LayerMask.NameToLayer("Node"))
         {
             lastNode = collision.GetComponent<NodeController>().graphNode;
+            if (lastNode.edges.ContainsKey(direction))
+                destinationNode = lastNode.edges[direction].destination;
+            else
+                destinationNode = lastNode;
         }
     }
 

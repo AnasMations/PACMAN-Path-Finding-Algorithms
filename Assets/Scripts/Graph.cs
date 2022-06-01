@@ -10,9 +10,9 @@ public class Node
         occupier = Occupier.Empty;
         xCoordinate= 0;
         yCoordinate= 0;
-        edges=new List<Edge> ();
+        edges=new Dictionary<Vector2,Edge> ();
     }
-    public Node((float, float) coordinates, Occupier occupier, List<Edge> edges)
+    public Node((float, float) coordinates, Occupier occupier, Dictionary<Vector2,Edge> edges)
     {
         this.xCoordinate = coordinates.Item1;
         this.yCoordinate = coordinates.Item2;
@@ -24,31 +24,39 @@ public class Node
     public float yCoordinate;
     public Occupier occupier = Occupier.Empty;
     [SerializeField]
-    public List<Edge> edges;
-    public void AddEdge(Node other,float distance)
+    public Dictionary<Vector2,Edge> edges;
+    public void AddEdge(Node other,float distance,Vector2 dir)
     {
-        AddEdge(new Edge(other,distance,Occupier.Empty));
+        AddEdge(new Edge(other,distance,Occupier.Empty),dir);
     }
-    public void AddEdge(Edge other)
+    public void AddEdge(Edge other,Vector2 dir)
     {
-        foreach (Edge edge in edges)
+        foreach (Edge edge in edges.Values)
+            if(edge.destination!=null)
             if (other.destination.xCoordinate == edge.destination.xCoordinate && other.destination.yCoordinate == edge.destination.yCoordinate)
             {
                 return;
             }
-        edges.Add(other);
+        edges.Add(dir,other);
     }
     public void RemoveEdge(Edge other)
     {
-        edges.Remove(other);
+        foreach ((Vector2 k, Edge v) in edges)
+            if (v == other)
+            {
+                edges.Remove(k);
+                return;
+            }
+
+
     }
     public void RemoveEdge(Node other)
     {
-        foreach (var node in edges)
+        foreach ((var dir,var edge)in edges)
         {
-            if (node.destination == other)
+            if (edge.destination == other)
             {
-                other.RemoveEdge(node);
+                other.RemoveEdge(edge);
                 return;
             }
         }
@@ -64,22 +72,22 @@ public class Node
     }
     public void TransferOccupierToNode(Node source)
     {
-        foreach (var node in edges)
+        foreach ((var dir,var edge) in edges)
         {
-            if (node.destination == source)
+            if (edge.destination == source)
             {
-                TransferOccupierToNode(node);
+                TransferOccupierToNode(edge);
                 return;
             }
         }
     }
     public void TransferOccupierFromNode(Node destination)
     {
-        foreach (var node in edges)
+        foreach ((var dir, var edge)in edges)
         {
-            if (node.destination == destination)
+            if (edge.destination == destination)
             {
-                TransferOccupierFromNode(node);
+                TransferOccupierFromNode(edge);
                 return;
             }
         }
@@ -111,6 +119,7 @@ public class Edge
         this.occupier = occupier;
     }
 }
+
 public class Graph
 {
     public Graph()
