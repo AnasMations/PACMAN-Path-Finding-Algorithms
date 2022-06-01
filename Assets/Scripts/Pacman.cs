@@ -65,7 +65,6 @@ public class Pacman : MonoBehaviour
         {
             this.nextDirection = Vector2.right;
         }
-
     }
 
     private void FixedUpdate()
@@ -95,8 +94,10 @@ public class Pacman : MonoBehaviour
     public bool Occupied(Vector2 direction)
     {
         RaycastHit2D hit = Physics2D.BoxCast(this.transform.position, Vector2.one * 0.75f, 0.0f, direction, 1.5f, this.obstacleLayer);
+        
         return hit.collider != null;
     }
+  
     private void OnTriggerEnter2D(Collider2D collision)
     {
         if (collision.tag == "portal")
@@ -122,6 +123,10 @@ public class Pacman : MonoBehaviour
             StartCoroutine(ActivatePowerPellet());
             GameManager.Instance.PowerPelletEaten();
             collision.gameObject.SetActive(false);
+        }
+        else if (collision.gameObject.layer == LayerMask.NameToLayer("Node"))
+        {
+            lastNode = collision.GetComponent<NodeController>().graphNode;
         }
     }
 

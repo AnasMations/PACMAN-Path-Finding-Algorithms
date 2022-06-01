@@ -8,29 +8,37 @@ public class Node
     public Node()
     {
         occupier = Occupier.Empty;
-        coordinates = (0, 0);
-        edges=new HashSet<(Node, int,Occupier)> ();
+        xCoordinate= 0;
+        yCoordinate= 0;
+        edges=new List<Edge> ();
     }
-    public Node((int, int) coordinates, Occupier occupier, HashSet<(Node, int, Occupier)> edges)
+    public Node((float, float) coordinates, Occupier occupier, List<Edge> edges)
     {
-        this.coordinates = coordinates;
+        this.xCoordinate = coordinates.Item1;
+        this.yCoordinate = coordinates.Item2;
         this.occupier = occupier;
         this.edges = edges;
     }
     [SerializeField]
-    public (int, int) coordinates { get; private set; }
+    public float xCoordinate;
+    public float yCoordinate;
     public Occupier occupier = Occupier.Empty;
     [SerializeField]
-    public HashSet<(Node, int, Occupier)> edges { get; private set; }
-    public void AddEdge(Node other,int distance)
+    public List<Edge> edges;
+    public void AddEdge(Node other,float distance)
     {
-        edges.Add((other,distance,Occupier.Empty));
+        AddEdge(new Edge(other,distance,Occupier.Empty));
     }
-    public void AddEdge((Node, int,Occupier) other)
+    public void AddEdge(Edge other)
     {
+        foreach (Edge edge in edges)
+            if (other.destination.xCoordinate == edge.destination.xCoordinate && other.destination.yCoordinate == edge.destination.yCoordinate)
+            {
+                return;
+            }
         edges.Add(other);
     }
-    public void RemoveEdge((Node ,int,Occupier)other)
+    public void RemoveEdge(Edge other)
     {
         edges.Remove(other);
     }
@@ -38,16 +46,17 @@ public class Node
     {
         foreach (var node in edges)
         {
-            if (node.Item1 == other)
+            if (node.destination == other)
             {
                 other.RemoveEdge(node);
                 return;
             }
         }
     }
-    public void ChangeCoordinates((int, int) newCoordinates)
+    public void ChangeCoordinates((float, float) newCoordinates)
     {
-        coordinates=newCoordinates;
+        xCoordinate=newCoordinates.Item1;
+        yCoordinate=newCoordinates.Item2;
     }
     public void Occupy(Occupier nodeOccupier)
     {
@@ -57,7 +66,7 @@ public class Node
     {
         foreach (var node in edges)
         {
-            if (node.Item1 == source)
+            if (node.destination == source)
             {
                 TransferOccupierToNode(node);
                 return;
@@ -68,33 +77,47 @@ public class Node
     {
         foreach (var node in edges)
         {
-            if (node.Item1 == destination)
+            if (node.destination == destination)
             {
                 TransferOccupierFromNode(node);
                 return;
             }
         }
     }
-    public void TransferOccupierToNode((Node, int, Occupier) source)
+    public void TransferOccupierToNode(Edge source)
     {
-        occupier = source.Item3;
-        source.Item3 = Occupier.Empty;
+        occupier = source.occupier;
+        source.occupier= Occupier.Empty;
     }
 
-    public void TransferOccupierFromNode((Node, int, Occupier) destination)
+    public void TransferOccupierFromNode(Edge destination)
     {
-        destination.Item3 = occupier;
+        destination.occupier = occupier;
         occupier = Occupier.Empty;
     }
 
+}
+[System.Serializable]
+public class Edge
+{
+    public Node destination;
+    public float cost;
+    public Occupier occupier;
+
+    public Edge(Node destination, float cost, Occupier occupier)
+    {
+        this.destination = destination;
+        this.cost = cost;
+        this.occupier = occupier;
+    }
 }
 public class Graph
 {
     public Graph()
     {
-        nodes = new HashSet<Node>();
+        nodes = new List<Node>();
     }
-    HashSet<Node> nodes;
+    public List<Node> nodes { get; }
     public void AddNode(Node newNode)
     {
         nodes.Add(newNode);

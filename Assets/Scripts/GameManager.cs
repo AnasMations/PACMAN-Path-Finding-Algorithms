@@ -1,4 +1,5 @@
 using UnityEngine;
+using System.Collections;
 using System.Collections.Generic;
 public class GameManager : MonoBehaviour
 {
@@ -13,6 +14,7 @@ public class GameManager : MonoBehaviour
             if (instance == null)
             {
                 instance = value;
+                DontDestroyOnLoad(value);
             }
             else
             {
@@ -38,59 +40,117 @@ public class GameManager : MonoBehaviour
     public Difficulty difficulty;
     public int score{ get; private set; }
     public int lives{ get; private set; }
-    public Graph mapOverView
-    {
-        get
-        {
-            return map;
-        }
-        private set
-        {
-            if (map == null)
-            {
-                map = value;
-            }
-        }
-    }
-    private Graph map;
+    public Graph map;
     private void Start()
     {
         NewGame();
         instance= this;
-        LoadGraphInstance();
+        StartCoroutine(LoadGraphInstance());
     }
-    private void LoadGraphInstance()
+    private IEnumerator LoadGraphInstance()
     {
+        yield return null;
         map = new Graph();
         foreach (Transform node in Nodes)
         {
             Node current = node.GetComponent<NodeController>().graphNode;
-            RaycastHit2D hit = Physics2D.Raycast(node.position, Vector2.up, 1000.0f, LayerMask.NameToLayer("Node"));
-            if (hit.collider!= null)
+            RaycastHit2D[] hits = new RaycastHit2D[100];
+            RaycastHit2D toBeAdded=new RaycastHit2D();
+            node.GetComponent<Collider2D>().Raycast(Vector2.up, hits);
+            foreach(RaycastHit2D hit in hits)
+                if (hit.collider!= null)
+                {
+                    if (hit.collider.GetComponent<NodeController>())
+                    {
+                        if (toBeAdded.collider == null)
+                        {
+                            if (hit.transform.position != node.position)
+                                toBeAdded = hit;
+                        }
+                        else
+                        {
+                            if (hit.transform.position != node.position)
+                                toBeAdded = toBeAdded.distance > hit.distance ? hit : toBeAdded;
+                        }
+
+                    }
+                }
+            if (toBeAdded.collider != null)
             {
-                Debug.Log("qaa");
-                current.AddEdge(hit.collider.GetComponent<NodeController>().graphNode, (int)hit.distance);
+                current.AddEdge(toBeAdded.collider.GetComponent<NodeController>().graphNode, toBeAdded.distance);
             }
-            hit = Physics2D.Raycast(node.position, Vector2.down, 1000.0f, LayerMask.NameToLayer("Node"));
-            if (hit.collider!= null)
+            toBeAdded= new RaycastHit2D();
+            node.GetComponent<Collider2D>().Raycast(Vector2.down, hits);
+            foreach (RaycastHit2D hit in hits)
+                if (hit.collider!= null)
+                {
+                    if (hit.collider.GetComponent<NodeController>())
+                    {
+                        if (toBeAdded.collider == null)
+                        {
+                            if (hit.transform.position != node.position)
+                                toBeAdded = hit;
+                        }
+                        else
+                        {
+                            if (hit.transform.position!=node.position)
+                                toBeAdded = toBeAdded.distance > hit.distance ? hit : toBeAdded;
+                        }
+                    }
+                }
+            if (toBeAdded.collider != null)
             {
-                Debug.Log("qaaa");
-                current.AddEdge(hit.collider.GetComponent<NodeController>().graphNode, (int)hit.distance);
+                current.AddEdge(toBeAdded.collider.GetComponent<NodeController>().graphNode, toBeAdded.distance);
             }
-            hit = Physics2D.Raycast(node.position, Vector2.left, 1000.0f, LayerMask.NameToLayer("Node"));
-            if (hit.collider!= null)
+            node.GetComponent<Collider2D>().Raycast(Vector2.left, hits);
+            toBeAdded = new RaycastHit2D();
+            foreach (RaycastHit2D hit in hits)
+                if (hit.collider!= null)
+                {
+                    if (hit.collider.GetComponent<NodeController>()) 
+                    {
+                        if (toBeAdded.collider == null)
+                        {
+                            if (hit.transform.position != node.position)
+                                toBeAdded = hit;
+                        }
+                        else
+                        {
+                            if (hit.transform.position != node.position)
+                                toBeAdded = toBeAdded.distance > hit.distance ? hit : toBeAdded;
+                        }
+                    }
+
+                }
+            if (toBeAdded.collider != null&&toBeAdded.transform.position!=node.position)
             {
-                Debug.Log("qaac");
-                current.AddEdge(hit.collider.GetComponent<NodeController>().graphNode, (int)hit.distance);
+                current.AddEdge(toBeAdded.collider.GetComponent<NodeController>().graphNode, toBeAdded.distance);
             }
-            hit = Physics2D.Raycast(node.position, Vector2.right, 1000.0f, LayerMask.NameToLayer("Node"));
-            if (hit.collider!= null)
+            node.GetComponent<Collider2D>().Raycast(Vector2.right, hits);
+            toBeAdded = new RaycastHit2D();
+            foreach (RaycastHit2D hit in hits)
+                if (hit.collider != null)
+                {
+                    if (hit.collider.GetComponent<NodeController>())
+                    {
+                        if (toBeAdded.collider == null)
+                        {
+                            if (hit.transform.position != node.position)
+                                toBeAdded = hit;
+                        }
+                        else
+                        {
+                            if (hit.transform.position != node.position)
+                                toBeAdded = toBeAdded.distance > hit.distance ? hit : toBeAdded;
+                        }
+
+                    }
+                }
+            if (toBeAdded.collider != null)
             {
-                Debug.Log("qaaaa");
-                current.AddEdge(hit.collider.GetComponent<NodeController>().graphNode, (int)hit.distance);
+                current.AddEdge(toBeAdded.collider.GetComponent<NodeController>().graphNode, toBeAdded.distance);
             }
             map.AddNode(current);
-            Debug.Log(current.edges.Count);
         }
     }
     private void Update()
@@ -99,8 +159,6 @@ public class GameManager : MonoBehaviour
             NewGame();
         }
         SCORE = score;
-        LoadGraphInstance();
-
     }
 
     private void NewGame(){
