@@ -23,7 +23,7 @@ public class GameManager : MonoBehaviour
         }
     }
     private static GameManager instance;
-    public Ghost[] ghosts;
+    public Transform ghostParent;
     public Pacman pacman;
     public Transform pellets;
     public Transform powerPellets;
@@ -167,7 +167,6 @@ public class GameManager : MonoBehaviour
             {
                 current.AddEdge(null, 99999, Vector2.right);
             }
-            Debug.Log(current.edges.Count);
             map.AddNode(current);
         }
     }
@@ -199,18 +198,18 @@ public class GameManager : MonoBehaviour
     }
 
     private void ResetState(){
-        for(int i=0; i<this.ghosts.Length; i++)
+        for(int i=0; i<this.ghostParent.childCount; i++)
         {
-            this.ghosts[i].gameObject.SetActive(true);
+            this.ghostParent.GetChild(i).gameObject.SetActive(true);
         }
 
         this.pacman.gameObject.SetActive(true);
     }
 
     private void GameOver(){
-        for(int i=0; i<this.ghosts.Length; i++)
+        for(int i=0; i<this.ghostParent.childCount; i++)
         {
-            this.ghosts[i].gameObject.SetActive(false);
+            this.ghostParent.GetChild(i).gameObject.SetActive(false);
         }
 
         this.pacman.gameObject.SetActive(false);
@@ -227,8 +226,8 @@ public class GameManager : MonoBehaviour
     public void GhostEaten(){
         if (pacman.powerPelletActive)
         {
-        ghostEatingStreak += 1;
-        SetScore(this.score + ghostPoints*ghostEatingStreak);
+            ghostEatingStreak += 1;
+            SetScore(this.score + ghostPoints*ghostEatingStreak);
         }
         else
         {
@@ -243,9 +242,9 @@ public class GameManager : MonoBehaviour
     public void PowerPelletEaten()
     {
         SetScore(this.score + powerPelletPoints);
-        foreach (Ghost ghost in ghosts)
+        foreach (Transform ghost in ghostParent)
         {
-
+            ghost.GetComponent<Ghost>().Scared();
         }
     }
     public void PacmanEaten(){

@@ -15,45 +15,74 @@ public class Ghost : MonoBehaviour
     [SerializeField]
     private float scaredSpeed = 4.0f;
     public new Rigidbody2D rigidbody;
-    Vector2 direction = Vector2.zero;
+    public Vector2Int StartPosition;
+    public Vector2 direction = Vector2.zero;
     Vector2 nextDirection = Vector2.zero;
-    LayerMask obstacleLayer ;
-    
+    public LayerMask obstacleLayer ;
+    [HideInInspector]
+    public int remainingTime = 0;
     public Node lastNode;
-    
     public Node destinationNode;
-
     // Start is called before the first frame update
     void Start()
     {
         rigidbody = GetComponent<Rigidbody2D>();
-        obstacleLayer = LayerMask.NameToLayer("Obstacle");
+        StartCoroutine(Initialize());
     }
 
-    // Update is called once per frame
-    void Update()
-    {
-        Navigate();
+     private void Update()
+        {
+        if (this.nextDirection != Vector2.zero)
+        {
+            SetDirection(this.nextDirection);
+        }
+        if (Input.GetKey("up"))
+        {
+            this.nextDirection = Vector2.up;
+        }
+        else if (Input.GetKey("down"))
+        {
+            this.nextDirection = Vector2.down;
+        }
+        else if (Input.GetKey("left"))
+        {
+            this.nextDirection = Vector2.left;
+        }
+        else if (Input.GetKey("right"))
+        {
+            this.nextDirection = Vector2.right;
+        }
     }
     private void FixedUpdate()
     {
+        rigidbody.rotation = 0;
+        rigidbody.angularVelocity = 0;
         Vector2 position = this.rigidbody.position;
         Vector2 translation = this.direction *  (scared?scaredSpeed:speed);
         this.rigidbody.velocity = translation;
     }
-
-    private void Navigate()
+    private IEnumerator Initialize()
     {
-        switch (GameManager.Instance.difficulty)
+        yield return null;
+        StartCoroutine(Navigate());
+    }
+    private IEnumerator Navigate(string Target= "Pacman")
+    {
+        while (true)
         {
-            case Difficulty.Easy:
-                break;
-            case Difficulty.Normal:
-                break;
-            case Difficulty.Hard:
-                break;
-            case Difficulty.Coup:
-                break;
+            yield return null;
+            switch (GameManager.Instance.difficulty)
+            {
+                case Difficulty.Easy:
+                    break;
+                case Difficulty.Normal:
+                    break;
+                case Difficulty.Hard:
+                    break;
+                case Difficulty.Coup:
+                    break;
+            }
+
         }
     }
     public void MoveUp()
@@ -76,7 +105,13 @@ public class Ghost : MonoBehaviour
     {
         if (forced || !Occupied(direction))
         {
+            if (this.direction == -nextDirection)
+            {
+                destinationNode = lastNode;
+            }
             this.direction = direction;
+            rigidbody.rotation = 0;
+            rigidbody.angularVelocity= 0;
             this.nextDirection = Vector2.zero;
             teleported = false;
         }
@@ -97,12 +132,34 @@ public class Ghost : MonoBehaviour
     private IEnumerator ScaredHelper()
     {
         scared = true;
-        yield return new WaitForSeconds(scaredTime);
+        remainingTime = (int)scaredTime;
+        for (int i = 0; i < scaredTime; i++)
+        {
+            remainingTime -= 1;
+            yield return new WaitForSeconds(1);
+        }
         scared = false;
     }
     public void Eaten()
     {
         StopAllCoroutines();
+        StartCoroutine(returnToStart());
+    }
+    IEnumerator returnToStart()
+    {
+        GetComponent<AnimateGhost>().bodySprite.enabled = false;
+        GetComponent<AnimateGhost>().eyesSprite.enabled = true;
+        scared=false;
+        eaten = true;
+        while (new Vector2Int((int)transform.position.x,(int)transform.position.y) != StartPosition)
+        {
+            StartCoroutine(Navigate("Start"));
+            yield return null;
+        }
+        StopAllCoroutines();
+        StartCoroutine(Initialize());
+        GetComponent<AnimateGhost>().bodySprite.enabled = true;
+        eaten = false;
     }
     private void OnTriggerEnter2D(Collider2D collision)
     {
@@ -118,6 +175,16 @@ public class Ghost : MonoBehaviour
             }
             if (!teleported)
                 teleported = true;
+        }
+    }
+    private void OnCollisionEnter2D(Collision2D collision)
+    {
+        if (collision.gameObject.layer == LayerMask.NameToLayer("Pacman"))
+        {
+            if (!scared)
+                GameManager.Instance.PacmanEaten();
+            else
+                Eaten();
         }
     }
 }
