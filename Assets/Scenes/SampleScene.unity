@@ -175,7 +175,7 @@ GameObject:
   m_Icon: {fileID: 0}
   m_NavMeshLayer: 0
   m_StaticEditorFlags: 0
-  m_IsActive: 1
+  m_IsActive: 0
 --- !u!114 &304896251
 MonoBehaviour:
   m_ObjectHideFlags: 0
@@ -204,6 +204,7 @@ MonoBehaviour:
     xCoordinate: 0
     yCoordinate: 0
     occupier: 2
+    edges: []
   destinationNode:
     xCoordinate: 0
     yCoordinate: 0
@@ -9943,10 +9944,12 @@ MonoBehaviour:
     xCoordinate: 0
     yCoordinate: 0
     occupier: 2
+    edges: []
   destinationNode:
     xCoordinate: 0
     yCoordinate: 0
     occupier: 2
+    edges: []
   powerPelletActive: 0
   powerPelletTime: 5
 --- !u!58 &1865524823
