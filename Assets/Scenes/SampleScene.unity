@@ -141,7 +141,7 @@ GameObject:
   m_Icon: {fileID: 0}
   m_NavMeshLayer: 0
   m_StaticEditorFlags: 0
-  m_IsActive: 0
+  m_IsActive: 1
 --- !u!114 &304896251
 MonoBehaviour:
   m_ObjectHideFlags: 0
@@ -164,12 +164,10 @@ MonoBehaviour:
     xCoordinate: 0
     yCoordinate: 0
     occupier: 2
-    edges: []
   destinationNode:
     xCoordinate: 0
     yCoordinate: 0
     occupier: 2
-    edges: []
 --- !u!58 &304896252
 CircleCollider2D:
   m_ObjectHideFlags: 0
@@ -6921,6 +6919,16 @@ Tilemap:
       m_TileObjectToInstantiateIndex: 65535
       dummyAlignment: 0
       m_AllTileFlags: 1073741825
+  - first: {x: 0, y: 0, z: 0}
+    second:
+      serializedVersion: 2
+      m_TileIndex: 5
+      m_TileSpriteIndex: 5
+      m_TileMatrixIndex: 0
+      m_TileColorIndex: 0
+      m_TileObjectToInstantiateIndex: 65535
+      dummyAlignment: 0
+      m_AllTileFlags: 1073741825
   - first: {x: 1, y: 0, z: 0}
     second:
       serializedVersion: 2
@@ -9133,7 +9141,7 @@ Tilemap:
     m_Data: {fileID: 11400000, guid: 96fd9d1387d9f12428659686bfeed52f, type: 2}
   - m_RefCount: 25
     m_Data: {fileID: 11400000, guid: 47c3754e3a04c7a46b74f5fc9a5b57e2, type: 2}
-  - m_RefCount: 27
+  - m_RefCount: 28
     m_Data: {fileID: 11400000, guid: 46278c44d9e01004581bcfd508fabab2, type: 2}
   - m_RefCount: 2
     m_Data: {fileID: 11400000, guid: 6a8f341f581400f4fbbdb74f8bcfc1a2, type: 2}
@@ -9198,7 +9206,7 @@ Tilemap:
     m_Data: {fileID: 21300000, guid: 2cf5def0f3636524eac3f7ccdbe38837, type: 3}
   - m_RefCount: 25
     m_Data: {fileID: 21300000, guid: c5111370543b9c74bacb41934c46f6c7, type: 3}
-  - m_RefCount: 27
+  - m_RefCount: 28
     m_Data: {fileID: 21300000, guid: e52ee8a5840dcaf4499f536c1580873c, type: 3}
   - m_RefCount: 2
     m_Data: {fileID: 21300000, guid: b1372eb48ab258e4d9cc78b4b8ae51e9, type: 3}
@@ -9253,7 +9261,7 @@ Tilemap:
   - m_RefCount: 1
     m_Data: {fileID: 21300000, guid: 8d65a6fd64925c141847db8ffa1b186f, type: 3}
   m_TileMatrixArray:
-  - m_RefCount: 503
+  - m_RefCount: 504
     m_Data:
       e00: 1
       e01: 0
@@ -9272,7 +9280,7 @@ Tilemap:
       e32: 0
       e33: 1
   m_TileColorArray:
-  - m_RefCount: 503
+  - m_RefCount: 504
     m_Data: {r: 1, g: 1, b: 1, a: 1}
   m_TileObjectToInstantiateArray: []
   m_AnimationFrameRate: 1
@@ -9648,12 +9656,10 @@ MonoBehaviour:
     xCoordinate: 0
     yCoordinate: 0
     occupier: 2
-    edges: []
   destinationNode:
     xCoordinate: 0
     yCoordinate: 0
     occupier: 2
-    edges: []
   powerPelletActive: 0
   powerPelletTime: 5
 --- !u!58 &1865524823

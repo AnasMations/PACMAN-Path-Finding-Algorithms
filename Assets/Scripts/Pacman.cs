@@ -49,6 +49,7 @@ public class Pacman : MonoBehaviour
         {
             SetDirection(this.nextDirection);
         }
+        
         if (Input.GetKey("up"))
         {
             this.nextDirection = Vector2.up;
