@@ -26,12 +26,9 @@ public class AnimateGhost : MonoBehaviour
     {
         InvokeRepeating(nameof(NextFrame), animationTime, animationTime);    
     }
+    
     void NextFrame()
     {
-        if (!this.bodySprite.enabled)
-        {
-            return;
-        }
         if (!ghost.scared)
         {
             eyesSprite.enabled = true;
@@ -57,6 +54,26 @@ public class AnimateGhost : MonoBehaviour
         {
             eyesSprite.enabled = false;
             bodySprite.color = Color.white;
+        }
+        if (ghost.eaten)
+        {
+            eyesSprite.enabled = true;
+            if (ghost.direction == Vector2.up)
+            {
+                eyesSprite.sprite = eyeSprites[0];
+            }
+            else if (ghost.direction == Vector2.down)
+            {
+                eyesSprite.sprite = eyeSprites[1];
+            }
+            else if (ghost.direction == Vector2.left)
+            {
+                eyesSprite.sprite = eyeSprites[2];
+            }
+            else if (ghost.direction == Vector2.right)
+            {
+                eyesSprite.sprite = eyeSprites[3];
+            }
         }
         this.animationFrame++;
 

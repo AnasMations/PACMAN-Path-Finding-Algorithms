@@ -6,6 +6,7 @@ TagManager:
   tags:
   - portal
   - SpawnGate
+  - Node
   layers:
   - Default
   - TransparentFX

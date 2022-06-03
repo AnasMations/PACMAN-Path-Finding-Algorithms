@@ -1,6 +1,7 @@
 using System.Collections;
 using System.Collections.Generic;
 using UnityEngine;
+using System.Linq;
 [RequireComponent(typeof(Rigidbody2D))]
 [RequireComponent (typeof(CircleCollider2D))]
 public class Ghost : MonoBehaviour
@@ -15,22 +16,28 @@ public class Ghost : MonoBehaviour
     [SerializeField]
     private float scaredSpeed = 4.0f;
     public new Rigidbody2D rigidbody;
-    public Vector2Int StartPosition;
+    private Vector2Int StartPosition;
     public Vector2 direction = Vector2.zero;
     Vector2 nextDirection = Vector2.zero;
     public LayerMask obstacleLayer ;
+    public LayerMask nodeLayer;
     [HideInInspector]
     public int remainingTime = 0;
     public Node lastNode;
+    public Node nextDestinationNode;
     public Node destinationNode;
+    public Vector2 startNodeCoordinates;
+    public delegate void navigator(Node desitation);
+    navigator navi;
     // Start is called before the first frame update
     void Start()
     {
         rigidbody = GetComponent<Rigidbody2D>();
         StartCoroutine(Initialize());
+        StartPosition = new Vector2Int((int)transform.position.x, (int)transform.position.y);
     }
 
-     private void Update()
+    private void Update()
         {
         if (this.nextDirection != Vector2.zero)
         {
@@ -60,20 +67,37 @@ public class Ghost : MonoBehaviour
         Vector2 position = this.rigidbody.position;
         Vector2 translation = this.direction *  (scared?scaredSpeed:speed);
         this.rigidbody.velocity = translation;
+        
     }
     private IEnumerator Initialize()
     {
+        int dir = (transform.position.x - transform.parent.position.x) > 0 ? 1 : -1;
+        while ((transform.position.x > transform.parent.position.x+0.05f)|| (transform.position.x < transform.parent.position.x - 0.05f))
+        {
+            yield return null;
+            dir = (transform.position.x - transform.parent.position.x) > 0 ? 1 : -1;
+            SetDirection(dir>0?Vector2.left:Vector2.right);
+        }
+        while (!Occupied(Vector3.up))
+        {
+            yield return null;
+            SetDirection(Vector2.up);
+        }
+        SetDirection((dir > 0 ? Vector2.left : Vector2.right));
         yield return null;
+        Physics2D.IgnoreCollision(GetComponent<Collider2D>(), GameManager.Instance.pacman.GetComponent<Collider2D>(), false);
         StartCoroutine(Navigate());
     }
+    
     private IEnumerator Navigate(string Target= "Pacman")
     {
-        while (true)
+       while (true)
         {
             yield return null;
             switch (GameManager.Instance.difficulty)
             {
                 case Difficulty.Easy:
+                    navi = randDir;
                     break;
                 case Difficulty.Normal:
                     break;
@@ -81,8 +105,20 @@ public class Ghost : MonoBehaviour
                     break;
                 case Difficulty.Coup:
                     break;
+                default:
+                    yield break;
             }
-
+            switch (Target)
+            {
+                case "Pacman":
+                    destinationNode = GameManager.Instance.pacman.destinationNode;
+                    break;
+                case "Start":
+                    destinationNode = GameManager.Instance.map.getNodeWithCoordinates(startNodeCoordinates.x*(transform.position.x>0?1:-1),startNodeCoordinates.y);
+                    break;
+            }
+            if(navi!=null)
+                navi(destinationNode);
         }
     }
     public void MoveUp()
@@ -107,7 +143,7 @@ public class Ghost : MonoBehaviour
         {
             if (this.direction == -nextDirection)
             {
-                destinationNode = lastNode;
+                nextDestinationNode = lastNode;
             }
             this.direction = direction;
             rigidbody.rotation = 0;
@@ -142,7 +178,7 @@ public class Ghost : MonoBehaviour
     }
     public void Eaten()
     {
-        StopAllCoroutines();
+        StopCoroutine(Navigate());
         StartCoroutine(returnToStart());
     }
     IEnumerator returnToStart()
@@ -151,9 +187,10 @@ public class Ghost : MonoBehaviour
         GetComponent<AnimateGhost>().eyesSprite.enabled = true;
         scared=false;
         eaten = true;
+        Physics2D.IgnoreCollision(GetComponent<Collider2D>(), GameManager.Instance.pacman.GetComponent<Collider2D>(), true);
+        StartCoroutine(Navigate("Start"));
         while (new Vector2Int((int)transform.position.x,(int)transform.position.y) != StartPosition)
         {
-            StartCoroutine(Navigate("Start"));
             yield return null;
         }
         StopAllCoroutines();
@@ -176,12 +213,52 @@ public class Ghost : MonoBehaviour
             if (!teleported)
                 teleported = true;
         }
+        if (collision.name.Contains("Node"))
+        {
+            lastNode = collision.GetComponent<NodeController>().graphNode;
+            if (lastNode.edges.ContainsKey(direction))
+                nextDestinationNode = lastNode.edges[direction].destination;
+            else
+                nextDestinationNode = lastNode;
+        }
+        
+
+    }
+    private void OnTriggerStay2D(Collider2D collision)
+    {
+        if (collision.tag == "Respawn")
+        {
+            StopAllCoroutines();
+            StartCoroutine(Initialize());
+        }
+    }
+    private void randDir(Node Destination =null)
+    {
+        List<Vector2> directions = lastNode.edges.Keys.ToList<Vector2>();
+        directions.Remove(-direction);
+        int i = 0;
+        if (directions.Count > 0)
+        {
+            i = Mathf.RoundToInt(Random.Range(0, directions.Count));
+            while (directions.Count > 0 && Occupied(directions[i]))
+            {
+                directions.RemoveAt(i);
+                i = Mathf.RoundToInt(Random.Range(0, directions.Count));
+            }
+        }
+        i = Mathf.RoundToInt(Random.Range(0, directions.Count));
+        if (i == directions.Count)
+        {
+            i = Mathf.RoundToInt(Random.Range(0, directions.Count - 1));
+        }
+        if (directions.Count > i)
+            SetDirection(directions[i]);
     }
     private void OnCollisionEnter2D(Collision2D collision)
     {
         if (collision.gameObject.layer == LayerMask.NameToLayer("Pacman"))
         {
-            if (!scared)
+            if (!scared&&!eaten)
                 GameManager.Instance.PacmanEaten();
             else
                 Eaten();

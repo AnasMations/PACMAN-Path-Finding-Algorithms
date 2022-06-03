@@ -17,17 +17,36 @@ public class NodeController : MonoBehaviour
         graphNode.Occupy(Occupier.Empty);
         gameObject.layer = 10;
     }
-
-    // Update is called once per frame
-    void Update()
-    {
-    }
     private void OnTriggerEnter2D(Collider2D collision)
     {
-           
+        if (collision.name.Contains("Pacman"))
+        {
+            graphNode.Occupy(Occupier.Pacman);
+            if (graphNode.edges.ContainsKey(collision.GetComponent<Pacman>().direction))
+                graphNode.edges[-collision.GetComponent<Pacman>().direction].destination.edges[collision.GetComponent<Pacman>().direction].occupier = Occupier.Empty;
+        }
+        else if (collision.name.Contains("Ghost"))
+        {
+            graphNode.Occupy(Occupier.Ghost);
+            if (graphNode.edges.ContainsKey(collision.GetComponent<Ghost>().direction))
+
+                graphNode.edges[-collision.GetComponent<Ghost>().direction].destination.edges[collision.GetComponent<Ghost>().direction].occupier = Occupier.Empty;
+
+        }
     }
     private void OnTriggerExit2D(Collider2D collision)
     {
-        
+        if (collision.name.Contains("Pacman"))
+        {
+            graphNode.Occupy(Occupier.Empty);
+            if (graphNode.edges.ContainsKey(collision.GetComponent<Pacman>().direction))
+                graphNode.edges[collision.GetComponent<Pacman>().direction].occupier=Occupier.Pacman;
+        }
+        else if (collision.name.Contains("Ghost"))
+        {
+            graphNode.Occupy(Occupier.Empty);
+            if(graphNode.edges.ContainsKey(collision.GetComponent<Ghost>().direction))
+                graphNode.edges[collision.GetComponent<Ghost>().direction].occupier = Occupier.Ghost;
+        }
     }
 }

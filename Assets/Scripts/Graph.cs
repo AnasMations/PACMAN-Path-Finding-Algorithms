@@ -126,7 +126,7 @@ public class Graph
     {
         nodes = new List<Node>();
     }
-    public List<Node> nodes { get; }
+    public List<Node> nodes {get; private set;}
     public void AddNode(Node newNode)
     {
         nodes.Add(newNode);
@@ -135,6 +135,16 @@ public class Graph
     {
         nodes.Remove(toBeRemoved);
     }
+    public Node getNodeWithCoordinates(float x, float y)
+    {
+        foreach (Node node in nodes)
+        {
+            if (node.xCoordinate == x && node.yCoordinate == y)
+                return node;
+        }
+        return null;
+    }
+
 }
 public enum Occupier
 {
