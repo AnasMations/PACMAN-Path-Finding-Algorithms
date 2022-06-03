@@ -57,9 +57,14 @@ public class GameManager : MonoBehaviour
             RaycastHit2D[] hits = new RaycastHit2D[100];
             RaycastHit2D toBeAdded=new RaycastHit2D();
             node.GetComponent<Collider2D>().Raycast(Vector2.up, hits);
-            foreach(RaycastHit2D hit in hits)
+            foreach (RaycastHit2D hit in hits)
+            {
                 if (hit.collider!= null)
                 {
+                    if (Physics2D.BoxCast(node.position, Vector2.one * 0.5f, 0.0f, Vector2.up, hit.distance, pacman.obstacleLayer).collider != null)
+                    {
+                        continue;
+                    }
                     if (hit.collider.GetComponent<NodeController>())
                     {
                         if (toBeAdded.collider == null)
@@ -75,6 +80,7 @@ public class GameManager : MonoBehaviour
 
                     }
                 }
+            }
             if (toBeAdded.collider != null)
             {
                 current.AddEdge(toBeAdded.collider.GetComponent<NodeController>().graphNode, toBeAdded.distance, Vector2.up);
@@ -88,6 +94,10 @@ public class GameManager : MonoBehaviour
             foreach (RaycastHit2D hit in hits)
                 if (hit.collider!= null)
                 {
+                    if (Physics2D.BoxCast(node.position, Vector2.one * 0.5f, 0.0f, Vector2.down, hit.distance, pacman.obstacleLayer).collider != null)
+                    {
+                        continue;
+                    }
                     if (hit.collider.GetComponent<NodeController>())
                     {
                         if (toBeAdded.collider == null)
@@ -115,6 +125,10 @@ public class GameManager : MonoBehaviour
             foreach (RaycastHit2D hit in hits)
                 if (hit.collider!= null)
                 {
+                    if (Physics2D.BoxCast(node.position, Vector2.one * 0.5f, 0.0f, Vector2.left, hit.distance, pacman.obstacleLayer).collider != null)
+                    {
+                        continue;
+                    }
                     if (hit.collider.GetComponent<NodeController>()) 
                     {
                         if (toBeAdded.collider == null)
@@ -130,8 +144,9 @@ public class GameManager : MonoBehaviour
                     }
 
                 }
-            if (toBeAdded.collider != null&&toBeAdded.transform.position!=node.position)
+            if (toBeAdded.collider != null)
             {
+
                 current.AddEdge(toBeAdded.collider.GetComponent<NodeController>().graphNode, toBeAdded.distance,Vector2.left);
             }
             else
@@ -144,6 +159,10 @@ public class GameManager : MonoBehaviour
             foreach (RaycastHit2D hit in hits)
                 if (hit.collider != null)
                 {
+                    if (Physics2D.BoxCast(node.position, Vector2.one * 0.5f, 0.0f, Vector2.right, hit.distance, pacman.obstacleLayer).collider != null)
+                    {
+                        continue;
+                    }
                     if (hit.collider.GetComponent<NodeController>())
                     {
                         if (toBeAdded.collider == null)

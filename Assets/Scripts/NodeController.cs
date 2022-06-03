@@ -19,20 +19,30 @@ public class NodeController : MonoBehaviour
     }
     private void OnTriggerEnter2D(Collider2D collision)
     {
+        int i = 0;
+        foreach ((Vector2 k, Edge v) in graphNode.edges)
+        {
+            if (v.destination == null)
+            {
+                i++;
+            }
+        }
+        /*
         if (collision.name.Contains("Pacman"))
         {
             graphNode.Occupy(Occupier.Pacman);
-            if (graphNode.edges.ContainsKey(collision.GetComponent<Pacman>().direction))
-                graphNode.edges[-collision.GetComponent<Pacman>().direction].destination.edges[collision.GetComponent<Pacman>().direction].occupier = Occupier.Empty;
+            if (graphNode.edges.ContainsKey(-collision.GetComponent<Pacman>().direction))
+                graphNode.edges[collision.GetComponent<Pacman>().direction].destination.edges[-collision.GetComponent<Pacman>().direction].occupier = Occupier.Empty;
         }
         else if (collision.name.Contains("Ghost"))
         {
             graphNode.Occupy(Occupier.Ghost);
-            if (graphNode.edges.ContainsKey(collision.GetComponent<Ghost>().direction))
+            if (graphNode.edges.ContainsKey(-collision.GetComponent<Ghost>().direction))
 
-                graphNode.edges[-collision.GetComponent<Ghost>().direction].destination.edges[collision.GetComponent<Ghost>().direction].occupier = Occupier.Empty;
+                graphNode.edges[collision.GetComponent<Ghost>().direction].destination.edges[-collision.GetComponent<Ghost>().direction].occupier = Occupier.Empty;
 
         }
+        */
     }
     private void OnTriggerExit2D(Collider2D collision)
     {

@@ -32,11 +32,11 @@ public class Node
     public void AddEdge(Edge other,Vector2 dir)
     {
         foreach (Edge edge in edges.Values)
-            if(edge.destination!=null)
-            if (other.destination.xCoordinate == edge.destination.xCoordinate && other.destination.yCoordinate == edge.destination.yCoordinate)
-            {
-                return;
-            }
+            if(edge.destination!=null&&other.destination!=null)
+                if (other.destination.xCoordinate == edge.destination.xCoordinate && other.destination.yCoordinate == edge.destination.yCoordinate)
+                {
+                    return;
+                }
         edges.Add(dir,other);
     }
     public void RemoveEdge(Edge other)

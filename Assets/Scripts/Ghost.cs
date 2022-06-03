@@ -34,31 +34,32 @@ public class Ghost : MonoBehaviour
     {
         rigidbody = GetComponent<Rigidbody2D>();
         StartCoroutine(Initialize());
-        StartPosition = new Vector2Int((int)transform.position.x, (int)transform.position.y);
+        StartPosition = new Vector2Int(0, 2);
     }
 
     private void Update()
         {
-        if (this.nextDirection != Vector2.zero)
-        {
-            SetDirection(this.nextDirection);
-        }
-        if (Input.GetKey("up"))
-        {
-            this.nextDirection = Vector2.up;
-        }
-        else if (Input.GetKey("down"))
-        {
-            this.nextDirection = Vector2.down;
-        }
-        else if (Input.GetKey("left"))
-        {
-            this.nextDirection = Vector2.left;
-        }
-        else if (Input.GetKey("right"))
-        {
-            this.nextDirection = Vector2.right;
-        }
+        /*
+            if (this.nextDirection != Vector2.zero)
+            {
+                SetDirection(this.nextDirection);
+            }
+            if (Input.GetKey("up"))
+            {
+                this.nextDirection = Vector2.up;
+            }
+            else if (Input.GetKey("down"))
+            {
+                this.nextDirection = Vector2.down;
+            }
+            else if (Input.GetKey("left"))
+            {
+                this.nextDirection = Vector2.left;
+            }
+            else if (Input.GetKey("right"))
+            {
+                this.nextDirection = Vector2.right;
+            }*/
     }
     private void FixedUpdate()
     {
@@ -83,23 +84,37 @@ public class Ghost : MonoBehaviour
             yield return null;
             SetDirection(Vector2.up);
         }
-        SetDirection((dir > 0 ? Vector2.left : Vector2.right));
         yield return null;
+        while (Mathf.Abs(transform.position.x)< Mathf.Abs (startNodeCoordinates.x))
+        { 
+            SetDirection((dir > 0 ? Vector2.left : Vector2.right));
+            yield return null;
+        }
+
         Physics2D.IgnoreCollision(GetComponent<Collider2D>(), GameManager.Instance.pacman.GetComponent<Collider2D>(), false);
+        GetComponent<AnimateGhost>().bodySprite.enabled = true;
+        eaten = false;
+        scared = false;
         StartCoroutine(Navigate());
+
     }
-    
+
     private IEnumerator Navigate(string Target= "Pacman")
     {
-       while (true)
+        while (true)
         {
             yield return null;
+            if (Target == "Pacman" && eaten)
+            {
+                Target = "Start";
+            }
             switch (GameManager.Instance.difficulty)
             {
                 case Difficulty.Easy:
                     navi = randDir;
                     break;
                 case Difficulty.Normal:
+//                    navi = KindaGood;
                     break;
                 case Difficulty.Hard:
                     break;
@@ -111,7 +126,7 @@ public class Ghost : MonoBehaviour
             switch (Target)
             {
                 case "Pacman":
-                    destinationNode = GameManager.Instance.pacman.destinationNode;
+                    destinationNode = GameManager.Instance.pacman.destinationNode;    
                     break;
                 case "Start":
                     destinationNode = GameManager.Instance.map.getNodeWithCoordinates(startNodeCoordinates.x*(transform.position.x>0?1:-1),startNodeCoordinates.y);
@@ -189,14 +204,16 @@ public class Ghost : MonoBehaviour
         eaten = true;
         Physics2D.IgnoreCollision(GetComponent<Collider2D>(), GameManager.Instance.pacman.GetComponent<Collider2D>(), true);
         StartCoroutine(Navigate("Start"));
-        while (new Vector2Int((int)transform.position.x,(int)transform.position.y) != StartPosition)
+        while (new Vector2(transform.position.x,transform.position.y) != startNodeCoordinates)
         {
             yield return null;
         }
-        StopAllCoroutines();
-        StartCoroutine(Initialize());
-        GetComponent<AnimateGhost>().bodySprite.enabled = true;
-        eaten = false;
+        while ((int)transform.position.y!= StartPosition.y)
+        {
+            yield return null;
+            SetDirection(Vector2.down);
+        }
+
     }
     private void OnTriggerEnter2D(Collider2D collision)
     {
@@ -228,10 +245,12 @@ public class Ghost : MonoBehaviour
     {
         if (collision.tag == "Respawn")
         {
+            eaten= false;
             StopAllCoroutines();
             StartCoroutine(Initialize());
         }
     }
+
     private void randDir(Node Destination =null)
     {
         List<Vector2> directions = lastNode.edges.Keys.ToList<Vector2>();
@@ -254,6 +273,38 @@ public class Ghost : MonoBehaviour
         if (directions.Count > i)
             SetDirection(directions[i]);
     }
+    public void Djkstra(Node Destination)
+    {
+
+    }
+    /*public void KindaGood(Node Destination)
+    {
+        if (Destination == null)
+            return;
+        if (Mathf.Abs(destinationNode.yCoordinate - transform.position.y) > Mathf.Abs(destinationNode.xCoordinate - transform.position.x) && !Occupied(Vector2.up * (destinationNode.yCoordinate - transform.position.y > 0 ? 1 : -1)))
+        {
+            SetDirection(Vector2.up * (destinationNode.yCoordinate - transform.position.y > 0 ? 1 : -1));
+        }
+        else if(!Occupied(Vector2.right * (destinationNode.xCoordinate - transform.position.x > 0 ? 1 : -1)))
+        {
+            SetDirection(Vector2.right * (destinationNode.xCoordinate - transform.position.x > 0 ? 1 : -1));
+        }
+        else
+        {
+            if (Mathf.Abs(destinationNode.yCoordinate - transform.position.y) > Mathf.Abs(destinationNode.xCoordinate - transform.position.x))
+            {
+                if (lastNode.edges[Vector2.right * (destinationNode.xCoordinate - transform.position.x > 0 ? 1 : -1)*-1].destination.edges.ContainsKey(Vector2.up * (destinationNode.yCoordinate - transform.position.y > 0 ? 1 : -1)))
+                    SetDirection(Vector2.right * (destinationNode.xCoordinate - transform.position.x > 0 ? 1 : -1) * -1);
+            }
+            else
+            {
+                if (lastNode.edges[Vector2.up * (destinationNode.yCoordinate - transform.position.y > 0 ? 1 : -1)*-1].destination.edges.ContainsKey(Vector2.right *(destinationNode.xCoordinate - transform.position.x > 0 ? 1 : -1)))
+                    SetDirection(Vector2.up * (destinationNode.yCoordinate - transform.position.y > 0 ? 1 : -1)*-1);
+
+            }
+        }
+
+    }*/
     private void OnCollisionEnter2D(Collision2D collision)
     {
         if (collision.gameObject.layer == LayerMask.NameToLayer("Pacman"))

@@ -11,7 +11,7 @@ public class Pacman : MonoBehaviour
     public Node lastNode;
     public Node destinationNode;
     public new Rigidbody2D rigidbody { get; private set; }
-    public Vector2 direction { get; private set; }
+    public Vector2 direction;
     public Vector2 nextDirection { get; private set; }
     public Vector3 startingPosition { get; private set; }
     private bool teleported = false;
