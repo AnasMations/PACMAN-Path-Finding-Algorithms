@@ -29,16 +29,18 @@ public class Ghost : MonoBehaviour
     public Vector2 startNodeCoordinates;
     public delegate void navigator(Node desitation);
     navigator navi;
+    private Transform pacmanPos;
     // Start is called before the first frame update
     void Start()
     {
+        pacmanPos = GameObject.Find("Pacman").transform;
         rigidbody = GetComponent<Rigidbody2D>();
         StartCoroutine(Initialize());
         StartPosition = new Vector2Int(0, 2);
     }
 
     private void Update()
-        {
+    {
         /*
             if (this.nextDirection != Vector2.zero)
             {
@@ -114,7 +116,7 @@ public class Ghost : MonoBehaviour
                     navi = randDir;
                     break;
                 case Difficulty.Normal:
-//                    navi = KindaGood;
+                    navi = Astar;
                     break;
                 case Difficulty.Hard:
                     break;
@@ -277,6 +279,70 @@ public class Ghost : MonoBehaviour
     {
 
     }
+
+    public void Astar(Node Destination)
+    {
+        List<Vector2> directions = lastNode.edges.Keys.ToList<Vector2>();
+        Debug.Log(directions[0]);
+        //directions.Remove(-direction);
+
+        direction = Vector2.zero;
+        float minDistance = float.MaxValue;
+
+        foreach(Vector2 availableDirection in directions)
+        {
+            Vector3 newPosition = this.transform.position + new Vector3(availableDirection.x, availableDirection.y, 0.0f);
+            float distance = (this.transform.position - newPosition).sqrMagnitude;
+
+            if(minDistance > distance)
+            {
+                direction = availableDirection;
+                minDistance = distance;
+            }
+        }
+
+        SetDirection(direction);
+
+    }
+
+    public void simpleRandom(Node Destination)
+    {
+        List<Vector2> directions = lastNode.edges.Keys.ToList<Vector2>();
+        directions.Remove(-direction);
+        SetDirection(directions[Mathf.RoundToInt(Random.Range(0, directions.Count))]);
+    }
+
+    public void Amoon(Node Destination)
+    {
+        List<Vector2> directions = lastNode.edges.Keys.ToList<Vector2>();
+        directions.Remove(-direction);
+        Vector2 distance = this.gameObject.transform.position - pacmanPos.position;
+        distance.x = Mathf.RoundToInt(distance.x);
+        distance.y = Mathf.RoundToInt(distance.y);
+
+        if(distance.x > 0 && !Occupied(Vector2.left))
+        {
+            SetDirection(Vector2.left);
+        }
+        else if(distance.x < 0 && !Occupied(Vector2.right))
+        {
+            SetDirection(Vector2.right);
+        }
+        else if(distance.y < 0 && !Occupied(Vector2.up))
+        {
+            SetDirection(Vector2.up);
+        }
+        else if(distance.y > 0 && !Occupied(Vector2.down))
+        {
+            SetDirection(Vector2.down);
+        }
+        else
+        {
+            SetDirection(directions[Mathf.RoundToInt(Random.Range(0, directions.Count))]);
+        }
+        Debug.Log(distance);
+    }
+
     /*public void KindaGood(Node Destination)
     {
         if (Destination == null)
