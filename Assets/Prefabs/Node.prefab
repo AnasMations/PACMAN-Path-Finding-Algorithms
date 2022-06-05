@@ -129,6 +129,9 @@ MonoBehaviour:
     xCoordinate: 0
     yCoordinate: 0
     occupier: 2
+  portalNode: 0
+  connectedPortal: {fileID: 0}
+  portalDir: {x: 0, y: 0}
 --- !u!50 &6249133410369759976
 Rigidbody2D:
   serializedVersion: 4

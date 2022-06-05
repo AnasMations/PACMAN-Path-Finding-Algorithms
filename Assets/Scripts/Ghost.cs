@@ -381,25 +381,34 @@ public class Ghost : MonoBehaviour
     public void Astar(Node Destination)
     {
         List<Vector2> directions = lastNode.edges.Keys.ToList<Vector2>();
-        Debug.Log(directions[0]);
-        //directions.Remove(-direction);
+        //List<Vector2> openDirections;
 
-        direction = Vector2.zero;
+        Vector2 dir = Vector2.zero;
         float minDistance = float.MaxValue;
 
         foreach(Vector2 availableDirection in directions)
         {
             Vector3 newPosition = this.transform.position + new Vector3(availableDirection.x, availableDirection.y, 0.0f);
-            float distance = (this.transform.position - newPosition).sqrMagnitude;
+            float distance = (newPosition - pacmanPos.position).sqrMagnitude;
+            Debug.Log(availableDirection);
+            Debug.Log(distance);
 
             if(minDistance > distance)
             {
-                direction = availableDirection;
+                dir = availableDirection;
                 minDistance = distance;
             }
+            //Debug.Log(direction);
         }
 
-        SetDirection(direction);
+        if(Occupied(dir))
+        {
+            directions.Remove(-direction);
+            SetDirection(directions[Mathf.RoundToInt(Random.Range(0, directions.Count))]);
+        }else
+        {
+            SetDirection(dir);
+        }
 
     }
 
@@ -537,5 +546,6 @@ public class Ghost : MonoBehaviour
             else
                 Eaten();
         }
+
     }
 }

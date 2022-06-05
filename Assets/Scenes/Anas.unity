@@ -9419,6 +9419,14 @@ PrefabInstance:
       propertyPath: m_Name
       value: Ghost (2)
       objectReference: {fileID: 0}
+    - target: {fileID: 8495015922858011512, guid: fe344fecd765d2748887579d082a9a1f, type: 3}
+      propertyPath: m_IsActive
+      value: 1
+      objectReference: {fileID: 0}
+    - target: {fileID: 8495015922858011513, guid: fe344fecd765d2748887579d082a9a1f, type: 3}
+      propertyPath: m_Enabled
+      value: 1
+      objectReference: {fileID: 0}
     - target: {fileID: 8495015922858011513, guid: fe344fecd765d2748887579d082a9a1f, type: 3}
       propertyPath: startNodeCoordinates.x
       value: 1.5
@@ -9495,6 +9503,14 @@ PrefabInstance:
     - target: {fileID: 8495015922858011512, guid: fe344fecd765d2748887579d082a9a1f, type: 3}
       propertyPath: m_Name
       value: Ghost (1)
+      objectReference: {fileID: 0}
+    - target: {fileID: 8495015922858011512, guid: fe344fecd765d2748887579d082a9a1f, type: 3}
+      propertyPath: m_IsActive
+      value: 1
+      objectReference: {fileID: 0}
+    - target: {fileID: 8495015922858011513, guid: fe344fecd765d2748887579d082a9a1f, type: 3}
+      propertyPath: m_Enabled
+      value: 1
       objectReference: {fileID: 0}
     - target: {fileID: 8495015922858011513, guid: fe344fecd765d2748887579d082a9a1f, type: 3}
       propertyPath: startNodeCoordinates.x
@@ -9589,6 +9605,10 @@ MonoBehaviour:
   obstacleLayer:
     serializedVersion: 2
     m_Bits: 512
+  previousNode:
+    xCoordinate: 0
+    yCoordinate: 0
+    occupier: 2
   lastNode:
     xCoordinate: 0
     yCoordinate: 0
@@ -9844,6 +9864,14 @@ PrefabInstance:
     - target: {fileID: 8495015922858011512, guid: fe344fecd765d2748887579d082a9a1f, type: 3}
       propertyPath: m_Name
       value: Ghost
+      objectReference: {fileID: 0}
+    - target: {fileID: 8495015922858011512, guid: fe344fecd765d2748887579d082a9a1f, type: 3}
+      propertyPath: m_IsActive
+      value: 1
+      objectReference: {fileID: 0}
+    - target: {fileID: 8495015922858011513, guid: fe344fecd765d2748887579d082a9a1f, type: 3}
+      propertyPath: m_Enabled
+      value: 1
       objectReference: {fileID: 0}
     - target: {fileID: 8495015922858011513, guid: fe344fecd765d2748887579d082a9a1f, type: 3}
       propertyPath: startNodeCoordinates.x
