@@ -144,7 +144,7 @@ public class Graph
         }
         return null;
     }
-
+    public HashSet<(Node , Node , float)> edgeList = new HashSet<(Node , Node , float)> ();
 }
 public enum Occupier
 {
