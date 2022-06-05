@@ -45,27 +45,6 @@ public class Ghost : MonoBehaviour
         {
             nextDestinationNode = lastNode;
         }
-        /*
-            if (this.nextDirection != Vector2.zero)
-            {
-                SetDirection(this.nextDirection);
-            }
-            if (Input.GetKey("up"))
-            {
-                this.nextDirection = Vector2.up;
-            }
-            else if (Input.GetKey("down"))
-            {
-                this.nextDirection = Vector2.down;
-            }
-            else if (Input.GetKey("left"))
-            {
-                this.nextDirection = Vector2.left;
-            }
-            else if (Input.GetKey("right"))
-            {
-                this.nextDirection = Vector2.right;
-            }*/
     }
     private void FixedUpdate()
     {
@@ -123,7 +102,7 @@ public class Ghost : MonoBehaviour
                     navi = Astar;
                     break;
                 case Difficulty.Hard:
-                    navi = KindaGood;
+                    navi = Dijkstra;
                     break;
                 case Difficulty.Coup:
                     break;
@@ -173,7 +152,7 @@ public class Ghost : MonoBehaviour
             rigidbody.rotation = 0;
             rigidbody.angularVelocity= 0;
             this.nextDirection = Vector2.zero;
-            teleported = false;
+            
         }
         else
         {
@@ -183,6 +162,11 @@ public class Ghost : MonoBehaviour
     public bool Occupied(Vector2 direction)
     {
         RaycastHit2D hit = Physics2D.BoxCast(this.transform.position, Vector2.one * 0.75f, 0.0f, direction, 1.5f, this.obstacleLayer);
+        return hit.collider != null;
+    }
+    public bool FutureOccupied(Vector2 futurePos, Vector2 direction)
+    {
+        RaycastHit2D hit = Physics2D.BoxCast(futurePos, Vector2.one * 0.75f, 0.0f, direction, 1.5f, this.obstacleLayer);
         return hit.collider != null;
     }
     public void Scared()
@@ -233,19 +217,6 @@ public class Ghost : MonoBehaviour
     }
     private void OnTriggerEnter2D(Collider2D collision)
     {
-        if (collision.tag == "portal")
-        {
-            if (collision.name == "leftPortal" && !teleported)
-            {
-                transform.position = GameManager.Instance.portals[1].transform.position;
-            }
-            else if (collision.name == "rightPortal" && !teleported)
-            {
-                transform.position = GameManager.Instance.portals[0].transform.position;
-            }
-            if (!teleported)
-                teleported = true;
-        }
         if (collision.name.Contains("Node"))
         {
             lastNode = collision.GetComponent<NodeController>().graphNode;
@@ -266,7 +237,24 @@ public class Ghost : MonoBehaviour
             StartCoroutine(Initialize());
         }
     }
-
+    private void OnTriggerExit2D(Collider2D collision)
+    {
+        if (collision.gameObject.layer == LayerMask.NameToLayer("Node"))
+        {
+            if (collision.gameObject.GetComponent<NodeController>().portalNode)
+            {
+                if (!teleported)
+                {
+                    transform.position = collision.gameObject.GetComponent<NodeController>().connectedPortal.transform.position;
+                    teleported = true;
+                }
+            }
+            else
+            {
+                teleported = false;
+            }
+        }
+    }
     private void randDir(Node Destination =null)
     {
         List<Vector2> directions = lastNode.edges.Keys.ToList<Vector2>();
@@ -289,11 +277,84 @@ public class Ghost : MonoBehaviour
         if (directions.Count > i)
             SetDirection(directions[i]);
     }
-    public void Djkstra(Node Destination)
+    public void Dijkstra(Node Destination)
     {
+        Vector2 nextDir = Vector2.zero;
+        Dictionary<Node, float> DistanceSet = new Dictionary<Node, float>();
+        Dictionary<Node, bool> shortestPathSet  = new Dictionary<Node, bool>();
+        Dictionary<Node, Node> pathDict = new Dictionary<Node, Node>();
+        pathDict.Add(lastNode,null);
+        foreach (Node n in  GameManager.Instance.map.nodes)
+        {
+            DistanceSet.Add(n, float.MaxValue);
+        }
+        DistanceSet[lastNode] = 0;
+        foreach (Node n in GameManager.Instance.map.nodes)
+        {
+            Node minNode = null;
+            float min = float.MaxValue;
+            foreach (Node N in GameManager.Instance.map.nodes)
+            {
+                if (!shortestPathSet.ContainsKey(N) && DistanceSet[N] <= min)
+                {
+
+                    min = DistanceSet[N];
+                    minNode = N;
+                }
+            }
+            if (minNode != null)
+            {
+                shortestPathSet.Add(minNode, true);
+                foreach (Node N in GameManager.Instance.map.nodes)
+                {
+                
+                    Edge e = null;
+                    if (minNode.edges.Count < 4)
+                        continue;
+                    if(e==null)
+                        e = minNode.edges[Vector2.up].destination==N? minNode.edges[Vector2.up]:null;
+                    if (e == null)
+                        e = minNode.edges[Vector2.down].destination == N ? minNode.edges[Vector2.down] : null;
+                    if (e == null)
+                        e = minNode.edges[Vector2.left].destination == N ? minNode.edges[Vector2.left] : null;
+                    if (e == null)
+                        e = minNode.edges[Vector2.right].destination == N ? minNode.edges[Vector2.right] : null;
+                    if (!shortestPathSet.ContainsKey(N) && e != null && DistanceSet[minNode] != float.MaxValue && e.cost + DistanceSet[minNode] < DistanceSet[N])
+                    {
+                        if (N != lastNode)
+                        {
+                            if (!pathDict.ContainsKey(N))
+                                pathDict.Add(N, minNode);
+                            else
+                                pathDict[N] = minNode;
+                        }
+                        DistanceSet[N] = DistanceSet[minNode] + e.cost;
+                    }
+                }
+
+            }
+        }
+        Node a = Destination;
+        while (pathDict[a] != lastNode)
+        {
+            a = pathDict[a];
+            if (a == null)
+                return;
+        }
+        Vector2 dir = Vector2.zero;
+        if (dir == Vector2.zero)
+            dir = lastNode.edges[Vector2.up].destination == a ? Vector2.up : Vector2.zero;
+        if (dir == Vector2.zero)
+            dir = lastNode.edges[Vector2.down].destination == a ? Vector2.down: Vector2.zero;
+        if (dir == Vector2.zero)
+            dir = lastNode.edges[Vector2.left].destination == a ? Vector2.left: Vector2.zero;
+        if (dir == Vector2.zero)
+            dir = lastNode.edges[Vector2.right].destination == a ? Vector2.right : Vector2.zero;
+        Debug.Log(dir);
+        SetDirection(dir);
+
 
     }
-
     public void Astar(Node Destination)
     {
         List<Vector2> directions = lastNode.edges.Keys.ToList<Vector2>();
@@ -356,20 +417,60 @@ public class Ghost : MonoBehaviour
         }
         Debug.Log(distance);
     }
-
+    /*
     public void KindaGood(Node Destination)
     {
+
         if (Destination == null)
         {
             return;
         }
         int yDiff = Mathf.RoundToInt(destinationNode.yCoordinate) - Mathf.RoundToInt(lastNode.yCoordinate);
         int xDiff = Mathf.RoundToInt(destinationNode.xCoordinate) - Mathf.RoundToInt(lastNode.xCoordinate);
-        
-        if (Mathf.Abs(yDiff) > Mathf.Abs(xDiff)&& Mathf.RoundToInt(destinationNode.yCoordinate)!= Mathf.RoundToInt(lastNode.yCoordinate))
+        if (xDiff == 0)
         {
+            {
+                if (!FutureOccupied(new Vector2(lastNode.xCoordinate,lastNode.yCoordinate),Vector2.up * (yDiff > 0 ? 1 : -1)))
+                {
+                    SetDirection(Vector2.up * (yDiff > 0 ? 1 : -1));
+                    return;
+                }
+                else if (lastNode.edges[Vector2.left].destination != null && lastNode.edges[Vector2.left].destination.edges[Vector2.up * (yDiff > 0 ? 1 : -1)].destination != null)
+                {
+                    SetDirection(Vector2.left);
+                    return;
+                }
+                else if (lastNode.edges[Vector2.right].destination != null && lastNode.edges[Vector2.right].destination.edges[Vector2.up * (yDiff > 0 ? 1 : -1)].destination != null)
+                {
+                    SetDirection(Vector2.right);
+                    return;
+                }
 
-            if (!Occupied(Vector2.up * (yDiff > 0 ? 1 : -1)))
+            }
+        }
+        if (yDiff == 0)
+        {
+            {
+                if (!FutureOccupied(new Vector2(lastNode.xCoordinate, lastNode.yCoordinate),Vector2.right * (xDiff > 0 ? 1 : -1)))
+                {
+                    SetDirection(Vector2.right * (xDiff > 0 ? 1 : -1));
+                    return;
+                }
+                else if (lastNode.edges[Vector2.up].destination != null && lastNode.edges[Vector2.up].destination.edges[Vector2.right * (xDiff > 0 ? 1 : -1)].destination != null)
+                {
+                    SetDirection(Vector2.up);
+                    return;
+                }
+                else if (lastNode.edges[Vector2.down].destination != null && lastNode.edges[Vector2.down].destination.edges[Vector2.right * (xDiff > 0 ? 1 : -1)].destination != null)
+                {
+                    SetDirection(Vector2.down);
+                    return;
+                }
+            }
+        }
+        if (Mathf.Abs(yDiff) < Mathf.Abs(xDiff)&& Mathf.RoundToInt(destinationNode.yCoordinate)!= Mathf.RoundToInt(lastNode.yCoordinate))
+        {
+            if (!FutureOccupied(new Vector2(lastNode.xCoordinate, lastNode.yCoordinate),Vector2.up * (yDiff > 0 ? 1 : -1)))
             {
                 SetDirection(Vector2.up * (yDiff > 0 ? 1 : -1));
                 return;
@@ -387,7 +488,7 @@ public class Ghost : MonoBehaviour
         }
         if(Mathf.RoundToInt(destinationNode.xCoordinate)!= Mathf.RoundToInt(lastNode.xCoordinate))
         {
-            if (!Occupied(Vector2.right * (xDiff> 0 ? 1 : -1)))
+            if (!FutureOccupied(new Vector2(lastNode.xCoordinate, lastNode.yCoordinate),Vector2.right * (xDiff> 0 ? 1 : -1)))
             {
                 SetDirection(Vector2.right * (xDiff > 0 ? 1 : -1));
                 return;
@@ -403,7 +504,7 @@ public class Ghost : MonoBehaviour
                 return;
             }
         }
-    }
+    }*/
     private void OnCollisionEnter2D(Collision2D collision)
     {
         if (collision.gameObject.layer == LayerMask.NameToLayer("Pacman"))

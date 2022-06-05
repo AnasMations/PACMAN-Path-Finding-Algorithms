@@ -92,7 +92,6 @@ public class Pacman : MonoBehaviour
             rigidbody.rotation = Vector3.Angle(this.direction, Vector2.right);
             if (this.direction == Vector2.down)
                 rigidbody.rotation = -rigidbody.rotation;
-            teleported = false;
         }
         else
         {
@@ -109,20 +108,7 @@ public class Pacman : MonoBehaviour
   
     private void OnTriggerEnter2D(Collider2D collision)
     {
-        if (collision.tag == "portal")
-        {
-            if (collision.name == "leftPortal" && !teleported)
-            {
-                transform.position = GameManager.Instance.portals[1].transform.position;
-            }
-            else if (collision.name == "rightPortal" && !teleported)
-            {
-                transform.position = GameManager.Instance.portals[0].transform.position;
-            }
-            if (!teleported)
-                teleported = true;
-        }
-        else if (collision.gameObject.layer == LayerMask.NameToLayer("Pellet"))
+        if (collision.gameObject.layer == LayerMask.NameToLayer("Pellet"))
         {
             GameManager.Instance.PelletEaten();
             collision.gameObject.SetActive(false);
@@ -142,5 +128,23 @@ public class Pacman : MonoBehaviour
                 destinationNode = lastNode;
         }
     }
-
+    private void OnTriggerExit2D(Collider2D collision)
+    {
+        if (collision.gameObject.layer == LayerMask.NameToLayer("Node"))
+        {
+            if (collision.gameObject.GetComponent<NodeController>().portalNode)
+            {
+                if (!teleported)
+                {
+                    transform.position = collision.gameObject.GetComponent<NodeController>().connectedPortal.transform.position;
+                    teleported = true;
+                }
+            }
+            else
+            {
+                teleported = false;
+            }
+        }
+    }
+    
 }
