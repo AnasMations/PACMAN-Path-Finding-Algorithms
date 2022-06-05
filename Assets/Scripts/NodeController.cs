@@ -13,6 +13,7 @@ public class NodeController : MonoBehaviour
     // Start is called before the first frame update
     void Start()
     {
+        gameObject.GetComponent<SpriteRenderer>().enabled = false;
         gameObject.GetComponent<Rigidbody2D>().gravityScale = 0;
         if (graphNode == null)
         graphNode = new Node();

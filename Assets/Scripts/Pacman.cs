@@ -8,6 +8,7 @@ public class Pacman : MonoBehaviour
     public float speedMultiplier = 1.0f;
     public Vector2 initialDirection;
     public LayerMask obstacleLayer;
+    public Node previousNode;
     public Node lastNode;
     public Node destinationNode;
     public new Rigidbody2D rigidbody { get; private set; }
@@ -121,6 +122,7 @@ public class Pacman : MonoBehaviour
         }
         else if (collision.gameObject.layer == LayerMask.NameToLayer("Node"))
         {
+            previousNode = lastNode;
             lastNode = collision.GetComponent<NodeController>().graphNode;
             if (lastNode.edges.ContainsKey(direction))
                 destinationNode = lastNode.edges[direction].destination;

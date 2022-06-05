@@ -220,6 +220,10 @@ public class GameManager : MonoBehaviour
         SetScore(0);
         SetLives(3);
         NewRound();
+        foreach (Transform g in ghostParent)
+        {
+            g.GetComponent<Ghost>().Init();
+        }
         ghostEatingStreak = 0;
     }
 

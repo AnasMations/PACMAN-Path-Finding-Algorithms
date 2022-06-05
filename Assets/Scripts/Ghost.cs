@@ -39,6 +39,12 @@ public class Ghost : MonoBehaviour
         StartPosition = new Vector2Int(0, 2);
     }
 
+    public void Init()
+    {
+        rigidbody = GetComponent<Rigidbody2D>();
+        StartCoroutine(Initialize());
+        StartPosition = new Vector2Int(0, 2);
+    }
     private void Update()
     {
         if (nextDestinationNode == null)
@@ -120,7 +126,8 @@ public class Ghost : MonoBehaviour
             }
             if(destinationNode == null)
                 destinationNode = lastNode;
-            if(navi!=null)
+            
+            if(Physics2D.BoxCast(this.transform.position, Vector2.one * 0.75f, 0.0f, direction, 5f, LayerMask.NameToLayer("Pacman")).collider==null && navi!=null&&!scared)
                 navi(destinationNode);
         }
     }
@@ -175,11 +182,12 @@ public class Ghost : MonoBehaviour
     }
     private IEnumerator ScaredHelper()
     {
+        remainingTime += (int)scaredTime;
         scared = true;
-        remainingTime = (int)scaredTime;
-        for (int i = 0; i < scaredTime; i++)
+        while(remainingTime>0)
         {
             remainingTime -= 1;
+            scared = true;
             yield return new WaitForSeconds(1);
         }
         scared = false;
@@ -219,6 +227,21 @@ public class Ghost : MonoBehaviour
     {
         if (collision.name.Contains("Node"))
         {
+            if (scared)
+            {
+                List<Vector2> availDirs = new List<Vector2>();
+                foreach (var e in collision.GetComponent<NodeController>().graphNode.edges)
+                {
+                    if (e.Value.destination != null)
+                        availDirs.Add(e.Key);
+                }
+                if (availDirs.Count > 0)
+                {
+                    Vector2 dir = availDirs[Mathf.RoundToInt(Random.Range(0, availDirs.Count))];
+                    Debug.Log(name+" "+ dir.ToString());
+                    SetDirection(dir);
+                }
+            }
             lastNode = collision.GetComponent<NodeController>().graphNode;
             if (lastNode.edges.ContainsKey(direction))
                 nextDestinationNode = lastNode.edges[direction].destination;
@@ -236,6 +259,7 @@ public class Ghost : MonoBehaviour
             StopAllCoroutines();
             StartCoroutine(Initialize());
         }
+
     }
     private void OnTriggerExit2D(Collider2D collision)
     {
@@ -350,7 +374,6 @@ public class Ghost : MonoBehaviour
             dir = lastNode.edges[Vector2.left].destination == a ? Vector2.left: Vector2.zero;
         if (dir == Vector2.zero)
             dir = lastNode.edges[Vector2.right].destination == a ? Vector2.right : Vector2.zero;
-        Debug.Log(dir);
         SetDirection(dir);
 
 
