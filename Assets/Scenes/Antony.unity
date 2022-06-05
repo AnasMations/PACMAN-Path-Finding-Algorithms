@@ -2814,7 +2814,7 @@ MonoBehaviour:
   pelletPoints: 10
   powerPelletPoints: 1000
   SCORE: 0
-  difficulty: 1
+  difficulty: 2
 --- !u!4 &336949862
 Transform:
   m_ObjectHideFlags: 0

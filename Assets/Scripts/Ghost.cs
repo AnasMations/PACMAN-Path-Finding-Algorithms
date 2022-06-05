@@ -41,6 +41,10 @@ public class Ghost : MonoBehaviour
 
     private void Update()
     {
+        if (nextDestinationNode == null)
+        {
+            nextDestinationNode = lastNode;
+        }
         /*
             if (this.nextDirection != Vector2.zero)
             {
@@ -119,6 +123,7 @@ public class Ghost : MonoBehaviour
                     navi = Astar;
                     break;
                 case Difficulty.Hard:
+                    navi = KindaGood;
                     break;
                 case Difficulty.Coup:
                     break;
@@ -134,6 +139,8 @@ public class Ghost : MonoBehaviour
                     destinationNode = GameManager.Instance.map.getNodeWithCoordinates(startNodeCoordinates.x*(transform.position.x>0?1:-1),startNodeCoordinates.y);
                     break;
             }
+            if(destinationNode == null)
+                destinationNode = lastNode;
             if(navi!=null)
                 navi(destinationNode);
         }
@@ -205,12 +212,19 @@ public class Ghost : MonoBehaviour
         scared=false;
         eaten = true;
         Physics2D.IgnoreCollision(GetComponent<Collider2D>(), GameManager.Instance.pacman.GetComponent<Collider2D>(), true);
+        StopCoroutine(Navigate());
         StartCoroutine(Navigate("Start"));
-        while (new Vector2(transform.position.x,transform.position.y) != startNodeCoordinates)
+        while (new Vector2(lastNode.xCoordinate,lastNode.yCoordinate) != new Vector2(startNodeCoordinates.x*(transform.position.x>0?1:-1),startNodeCoordinates.y))
         {
             yield return null;
         }
-        while ((int)transform.position.y!= StartPosition.y)
+        while ((int)transform.position.x != StartPosition.x)
+        {
+            Debug.Log("AAA");
+            SetDirection(Vector2.right * (transform.position.x > 0 ? -1 : 1));
+            yield return null;
+        }
+        while (transform.position.y!= StartPosition.y)
         {
             yield return null;
             SetDirection(Vector2.down);
@@ -343,34 +357,53 @@ public class Ghost : MonoBehaviour
         Debug.Log(distance);
     }
 
-    /*public void KindaGood(Node Destination)
+    public void KindaGood(Node Destination)
     {
         if (Destination == null)
+        {
             return;
-        if (Mathf.Abs(destinationNode.yCoordinate - transform.position.y) > Mathf.Abs(destinationNode.xCoordinate - transform.position.x) && !Occupied(Vector2.up * (destinationNode.yCoordinate - transform.position.y > 0 ? 1 : -1)))
-        {
-            SetDirection(Vector2.up * (destinationNode.yCoordinate - transform.position.y > 0 ? 1 : -1));
         }
-        else if(!Occupied(Vector2.right * (destinationNode.xCoordinate - transform.position.x > 0 ? 1 : -1)))
+        int yDiff = Mathf.RoundToInt(destinationNode.yCoordinate) - Mathf.RoundToInt(lastNode.yCoordinate);
+        int xDiff = Mathf.RoundToInt(destinationNode.xCoordinate) - Mathf.RoundToInt(lastNode.xCoordinate);
+        
+        if (Mathf.Abs(yDiff) > Mathf.Abs(xDiff)&& Mathf.RoundToInt(destinationNode.yCoordinate)!= Mathf.RoundToInt(lastNode.yCoordinate))
         {
-            SetDirection(Vector2.right * (destinationNode.xCoordinate - transform.position.x > 0 ? 1 : -1));
-        }
-        else
-        {
-            if (Mathf.Abs(destinationNode.yCoordinate - transform.position.y) > Mathf.Abs(destinationNode.xCoordinate - transform.position.x))
-            {
-                if (lastNode.edges[Vector2.right * (destinationNode.xCoordinate - transform.position.x > 0 ? 1 : -1)*-1].destination.edges.ContainsKey(Vector2.up * (destinationNode.yCoordinate - transform.position.y > 0 ? 1 : -1)))
-                    SetDirection(Vector2.right * (destinationNode.xCoordinate - transform.position.x > 0 ? 1 : -1) * -1);
-            }
-            else
-            {
-                if (lastNode.edges[Vector2.up * (destinationNode.yCoordinate - transform.position.y > 0 ? 1 : -1)*-1].destination.edges.ContainsKey(Vector2.right *(destinationNode.xCoordinate - transform.position.x > 0 ? 1 : -1)))
-                    SetDirection(Vector2.up * (destinationNode.yCoordinate - transform.position.y > 0 ? 1 : -1)*-1);
 
+            if (!Occupied(Vector2.up * (yDiff > 0 ? 1 : -1)))
+            {
+                SetDirection(Vector2.up * (yDiff > 0 ? 1 : -1));
+                return;
+            }
+            else if (lastNode.edges[Vector2.left].destination!=null&& lastNode.edges[Vector2.left].destination.edges[Vector2.up * (yDiff > 0 ? 1 : -1)].destination!=null)
+            {
+                SetDirection(Vector2.left);
+                return;
+            }
+            else if(lastNode.edges[Vector2.right].destination != null && lastNode.edges[Vector2.right].destination.edges[Vector2.up * (yDiff> 0 ? 1 : -1)].destination != null)
+            {
+                SetDirection(Vector2.right);
+                return;
             }
         }
-
-    }*/
+        if(Mathf.RoundToInt(destinationNode.xCoordinate)!= Mathf.RoundToInt(lastNode.xCoordinate))
+        {
+            if (!Occupied(Vector2.right * (xDiff> 0 ? 1 : -1)))
+            {
+                SetDirection(Vector2.right * (xDiff > 0 ? 1 : -1));
+                return;
+            }
+            else if (lastNode.edges[Vector2.up].destination != null && lastNode.edges[Vector2.up].destination.edges[Vector2.right * (xDiff> 0 ? 1 : -1)].destination != null)
+            {
+                SetDirection(Vector2.up);
+                return;
+            }
+            else if (lastNode.edges[Vector2.down].destination != null && lastNode.edges[Vector2.down].destination.edges[Vector2.right * (xDiff > 0 ? 1 : -1)].destination != null)
+            {
+                SetDirection(Vector2.down);
+                return;
+            }
+        }
+    }
     private void OnCollisionEnter2D(Collision2D collision)
     {
         if (collision.gameObject.layer == LayerMask.NameToLayer("Pacman"))

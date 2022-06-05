@@ -45,6 +45,11 @@ public class Pacman : MonoBehaviour
     }
     private void Update()
     {
+
+        if(destinationNode==null)
+        {
+            destinationNode = lastNode;
+        }
         if (this.nextDirection != Vector2.zero)
         {
             SetDirection(this.nextDirection);
