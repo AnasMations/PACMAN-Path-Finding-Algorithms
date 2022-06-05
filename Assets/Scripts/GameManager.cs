@@ -84,6 +84,7 @@ public class GameManager : MonoBehaviour
             if (toBeAdded.collider != null)
             {
                 current.AddEdge(toBeAdded.collider.GetComponent<NodeController>().graphNode, toBeAdded.distance, Vector2.up);
+                map.edgeList.Add((current, toBeAdded.collider.GetComponent<NodeController>().graphNode, toBeAdded.distance, Vector2.up));
             }
             else
             {
@@ -115,6 +116,7 @@ public class GameManager : MonoBehaviour
             if (toBeAdded.collider != null)
             {
                 current.AddEdge(toBeAdded.collider.GetComponent<NodeController>().graphNode, toBeAdded.distance,Vector2.down);
+                map.edgeList.Add((current, toBeAdded.collider.GetComponent<NodeController>().graphNode, toBeAdded.distance,Vector2.down));
             }
             else
             {
@@ -148,6 +150,7 @@ public class GameManager : MonoBehaviour
             {
 
                 current.AddEdge(toBeAdded.collider.GetComponent<NodeController>().graphNode, toBeAdded.distance,Vector2.left);
+                map.edgeList.Add((current, toBeAdded.collider.GetComponent<NodeController>().graphNode, toBeAdded.distance, Vector2.left));
             }
             else
             {
@@ -181,6 +184,8 @@ public class GameManager : MonoBehaviour
             if (toBeAdded.collider != null)
             {
                 current.AddEdge(toBeAdded.collider.GetComponent<NodeController>().graphNode, toBeAdded.distance,Vector2.right);
+                map.edgeList.Add((current, toBeAdded.collider.GetComponent<NodeController>().graphNode, toBeAdded.distance, Vector2.right));
+
             }
             else
             {
