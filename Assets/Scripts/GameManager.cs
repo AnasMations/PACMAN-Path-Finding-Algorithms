@@ -94,12 +94,12 @@ public class GameManager : MonoBehaviour
                 }
                 
             }
-            toBeAdded= new RaycastHit2D();
-            node.GetComponent<Collider2D>().Raycast(Vector2.down, hits);
+            node.GetComponent<Collider2D>().Raycast(Vector2.right, hits);
+            toBeAdded = new RaycastHit2D();
             foreach (RaycastHit2D hit in hits)
-                if (hit.collider!= null)
+                if (hit.collider != null)
                 {
-                    if (Physics2D.BoxCast(node.position, Vector2.one * 0.5f, 0.0f, Vector2.down, hit.distance, pacman.obstacleLayer).collider != null)
+                    if (Physics2D.BoxCast(node.position, Vector2.one * 0.5f, 0.0f, Vector2.right, hit.distance, pacman.obstacleLayer).collider != null)
                     {
                         continue;
                     }
@@ -112,23 +112,27 @@ public class GameManager : MonoBehaviour
                         }
                         else
                         {
-                            if (hit.transform.position!=node.position)
+                            if (hit.transform.position != node.position)
                                 toBeAdded = toBeAdded.distance > hit.distance ? hit : toBeAdded;
                         }
+
                     }
                 }
-            if (!(current.edges.ContainsKey(Vector2.down)))
+            if (!(current.edges.ContainsKey(Vector2.right)))
             {
                 if (toBeAdded.collider != null)
                 {
-                    current.AddEdge(toBeAdded.collider.GetComponent<NodeController>().graphNode, toBeAdded.distance, Vector2.down);
-                    map.edgeList.Add((current, toBeAdded.collider.GetComponent<NodeController>().graphNode, toBeAdded.distance, Vector2.down));
+                    current.AddEdge(toBeAdded.collider.GetComponent<NodeController>().graphNode, toBeAdded.distance, Vector2.right);
+                    map.edgeList.Add((current, toBeAdded.collider.GetComponent<NodeController>().graphNode, toBeAdded.distance, Vector2.right));
+
                 }
                 else
                 {
-                    current.AddEdge(null, 99999, Vector2.down);
+                    current.AddEdge(null, 99999, Vector2.right);
                 }
+
             }
+            
             node.GetComponent<Collider2D>().Raycast(Vector2.left, hits);
             toBeAdded = new RaycastHit2D();
             foreach (RaycastHit2D hit in hits)
@@ -166,13 +170,12 @@ public class GameManager : MonoBehaviour
                     current.AddEdge(null, 99999, Vector2.left);
                 }
             }
-
-            node.GetComponent<Collider2D>().Raycast(Vector2.right, hits);
             toBeAdded = new RaycastHit2D();
+            node.GetComponent<Collider2D>().Raycast(Vector2.down, hits);
             foreach (RaycastHit2D hit in hits)
                 if (hit.collider != null)
                 {
-                    if (Physics2D.BoxCast(node.position, Vector2.one * 0.5f, 0.0f, Vector2.right, hit.distance, pacman.obstacleLayer).collider != null)
+                    if (Physics2D.BoxCast(node.position, Vector2.one * 0.5f, 0.0f, Vector2.down, hit.distance, pacman.obstacleLayer).collider != null)
                     {
                         continue;
                     }
@@ -188,22 +191,19 @@ public class GameManager : MonoBehaviour
                             if (hit.transform.position != node.position)
                                 toBeAdded = toBeAdded.distance > hit.distance ? hit : toBeAdded;
                         }
-
                     }
                 }
-            if (!(current.edges.ContainsKey(Vector2.right)))
+            if (!(current.edges.ContainsKey(Vector2.down)))
             {
                 if (toBeAdded.collider != null)
                 {
-                    current.AddEdge(toBeAdded.collider.GetComponent<NodeController>().graphNode, toBeAdded.distance,Vector2.right);
-                    map.edgeList.Add((current, toBeAdded.collider.GetComponent<NodeController>().graphNode, toBeAdded.distance, Vector2.right));
-
+                    current.AddEdge(toBeAdded.collider.GetComponent<NodeController>().graphNode, toBeAdded.distance, Vector2.down);
+                    map.edgeList.Add((current, toBeAdded.collider.GetComponent<NodeController>().graphNode, toBeAdded.distance, Vector2.down));
                 }
                 else
                 {
-                    current.AddEdge(null, 99999, Vector2.right);
+                    current.AddEdge(null, 99999, Vector2.down);
                 }
-
             }
             map.AddNode(current);
         }
