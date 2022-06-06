@@ -2814,7 +2814,7 @@ MonoBehaviour:
   pelletPoints: 10
   powerPelletPoints: 1000
   SCORE: 0
-  difficulty: 3
+  difficulty: 1
 --- !u!4 &336949862
 Transform:
   m_ObjectHideFlags: 0
@@ -9520,7 +9520,7 @@ PrefabInstance:
       objectReference: {fileID: 0}
     - target: {fileID: 8495015922858011513, guid: fe344fecd765d2748887579d082a9a1f, type: 3}
       propertyPath: destinator
-      value: 0
+      value: 3
       objectReference: {fileID: 0}
     - target: {fileID: 8495015922858011513, guid: fe344fecd765d2748887579d082a9a1f, type: 3}
       propertyPath: startNodeCoordinates.x
@@ -9610,6 +9610,10 @@ PrefabInstance:
     - target: {fileID: 8495015922858011513, guid: fe344fecd765d2748887579d082a9a1f, type: 3}
       propertyPath: InitNode.y
       value: 12.5
+      objectReference: {fileID: 0}
+    - target: {fileID: 8495015922858011513, guid: fe344fecd765d2748887579d082a9a1f, type: 3}
+      propertyPath: destinator
+      value: 2
       objectReference: {fileID: 0}
     - target: {fileID: 8495015922858011513, guid: fe344fecd765d2748887579d082a9a1f, type: 3}
       propertyPath: startNodeCoordinates.x
@@ -9702,7 +9706,7 @@ PrefabInstance:
       objectReference: {fileID: 0}
     - target: {fileID: 8495015922858011513, guid: fe344fecd765d2748887579d082a9a1f, type: 3}
       propertyPath: destinator
-      value: 0
+      value: 1
       objectReference: {fileID: 0}
     - target: {fileID: 8495015922858011513, guid: fe344fecd765d2748887579d082a9a1f, type: 3}
       propertyPath: startNodeCoordinates.x

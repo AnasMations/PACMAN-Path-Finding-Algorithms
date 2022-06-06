@@ -126,7 +126,7 @@ public class Ghost : MonoBehaviour
             switch (GameManager.Instance.difficulty)
             {
                 case Difficulty.Easy:
-                    navi = randDir;
+                    navi = bellman;
                     break;
                 case Difficulty.Normal:
                     navi = Astar;
@@ -186,28 +186,28 @@ public class Ghost : MonoBehaviour
                         case DestinationSelector.SideNode:
                             if (GameManager.Instance.pacman.direction.y == 0)
                             {
-                                if (GameManager.Instance.pacman.direction.y == 0)
+                                destinationNode = destinationNode.edges[Vector2.up].destination;
+                                if (destinationNode == null)
                                 {
-                                    destinationNode = destinationNode.edges[Vector2.up].destination;
+                                    destinationNode = GameManager.Instance.pacman.lastNode;
+                                    destinationNode = destinationNode.edges[Vector2.down].destination;
                                     if (destinationNode == null)
                                     {
-                                        destinationNode = destinationNode.edges[Vector2.down].destination;
-                                        if (destinationNode == null)
-                                        {
-                                            destinationNode = GameManager.Instance.pacman.destinationNode;
-                                        }
+                                        destinationNode = GameManager.Instance.pacman.destinationNode;
                                     }
                                 }
-                                else
+                            }
+
+                            else
+                            {
+                                destinationNode = destinationNode.edges[Vector2.left].destination;
+                                if (destinationNode == null)
                                 {
-                                    destinationNode = destinationNode.edges[Vector2.left].destination;
+                                    destinationNode = GameManager.Instance.pacman.lastNode;
+                                    destinationNode = destinationNode.edges[Vector2.right].destination;
                                     if (destinationNode == null)
                                     {
-                                        destinationNode = destinationNode.edges[Vector2.right].destination;
-                                        if (destinationNode == null)
-                                        {
-                                            destinationNode = GameManager.Instance.pacman.destinationNode;
-                                        }
+                                        destinationNode = GameManager.Instance.pacman.destinationNode;
                                     }
                                 }
                             }
@@ -242,10 +242,6 @@ public class Ghost : MonoBehaviour
             if (Physics2D.BoxCast(this.transform.position, Vector2.one * 0.75f, 0.0f, direction, 5f, LayerMask.NameToLayer("Pacman")).collider != null&&!(scared||eaten))
             {
                 destinationNode = GameManager.Instance.pacman.destinationNode;
-            }
-            if (!initilized)
-            {
-                Debug.Log("AAAAAAAAAAAAAAAAAAAAAAA");
             }
             if (navi != null && !scared)
             {
@@ -308,6 +304,12 @@ public class Ghost : MonoBehaviour
 
     public void Scared()
     {
+        if (eaten)
+        {
+            scared = false;
+            return;
+        }
+        SetDirection(-direction);
         StartCoroutine(ScaredHelper());
     }
 
@@ -368,10 +370,12 @@ public class Ghost : MonoBehaviour
                     if (e.Value.destination != null)
                         availDirs.Add(e.Key);
                 }
+                availDirs.Remove(-direction);
                 if (availDirs.Count > 0)
                 {
-                    Vector2 dir = availDirs[Mathf.RoundToInt(Random.Range(0, availDirs.Count))];
                     
+                    Vector2 dir = availDirs[Mathf.RoundToInt(Random.Range(0, availDirs.Count))];
+                    Debug.Log(name + dir.ToString());
                     SetDirection(dir);
                 }
             }
@@ -436,6 +440,83 @@ public class Ghost : MonoBehaviour
         }
         if (directions.Count > i)
             SetDirection(directions[i]);
+    }
+
+    public (float, float) nodeKey(Node node)
+    {
+        var res = (node.xCoordinate, node.yCoordinate);
+        return res;
+    }
+
+    public void bellman(Node Destination)
+    {
+        var edges = GameManager.Instance.map.edgeList.ToList();
+        var n = GameManager.Instance.map.nodes.Count(); //we want n of nodes not edges
+
+        var src = lastNode;
+        var dst = Destination;
+
+        // Debug.Log("Bellman");
+
+        Dictionary<(double, double), double> dist = new Dictionary<(double, double), double>(); // distance
+        Dictionary<(double, double), Node> pred = new Dictionary<(double, double), Node>(); // preceding node for each node
+
+        // foreach (var edge in edges) { //getting all connected nodes //todo: get from map.nodes (easier)
+        //     dist[nodeKey(edge.Item1)] = double.PositiveInfinity;
+        //     dist[nodeKey(edge.Item2)] = double.PositiveInfinity;
+        // }
+
+        foreach (var node in GameManager.Instance.map.nodes)
+        {
+            dist[nodeKey(node)] = double.PositiveInfinity;
+        }
+
+        // Algorithm
+        dist[nodeKey(src)] = 0;
+
+        for (int i = 0; i < n; i++)
+        {
+            foreach (var edge in edges)
+            {
+                var edgeSrc = edge.Item1;
+                var edgeDst = edge.Item2;
+                var edgeWgt = edge.Item3;
+                // var edgeDir = edge.Item4;
+
+                if (dist[nodeKey(edgeSrc)] != double.PositiveInfinity && ((dist[nodeKey(edgeSrc)] + edgeWgt) < dist[nodeKey(edgeDst)]))
+                {
+                    dist[nodeKey(edgeDst)] = dist[nodeKey(edgeSrc)] + edgeWgt;
+                    pred[nodeKey(edgeDst)] = edgeSrc;
+                }
+            }
+        }
+
+
+        var current = dst; // backtracking from last node (dst) to (src) to find next step
+        var next = current;
+        // var path = new List<Node>();
+        while (pred.ContainsKey(nodeKey(current)))
+        {
+            // while current node has previous node:
+            next = current;
+            current = pred[nodeKey(current)];
+        }
+
+        foreach (var edge in src.edges)
+        {
+            if (edge.Value.destination == next)
+            {
+                SetDirection(edge.Key);
+                return;
+            }
+        }
+
+        // foreach (var edge in edges) {
+        //     if (edge.Item1 == src && edge.Item2 == next) {
+        //         SetDirection(edge.Item4);
+        //     }
+        // }
+
     }
 
     public void Dijkstra(Node Destination)
@@ -598,16 +679,21 @@ public class Ghost : MonoBehaviour
 
     }
 
+    public void Coup(Node Destination)
+    {
+
+    }
+
     public void Astar(Node Destination)
     {
-        List<Vector2> directions = lastNode.edges.Keys.ToList<Vector2>();
+        List<Vector2> directions = lastNode.edges.Keys.ToList();
         Vector2 dir = Vector2.zero;
         float minDistance = float.MaxValue;
 
         foreach (Vector2 availableDirection in directions)
         {
-            Vector3 newPosition = this.transform.position + new Vector3(availableDirection.x, availableDirection.y, 0.0f);
-            float distance = (newPosition - pacmanPos.position).sqrMagnitude;
+            Vector3 newPosition = new Vector3(lastNode.xCoordinate,lastNode.yCoordinate)+ new Vector3(availableDirection.x, availableDirection.y, 0.0f);
+            float distance = (newPosition - new Vector3(Destination.xCoordinate, Destination.yCoordinate)).sqrMagnitude;
             
             if (minDistance > distance)
             {
