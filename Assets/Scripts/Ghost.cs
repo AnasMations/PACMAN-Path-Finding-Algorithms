@@ -378,6 +378,94 @@ public class Ghost : MonoBehaviour
 
 
     }
+
+    public void BFS(Node Destination)
+    {
+
+        Queue<Node> parents = new Queue<Node>();
+        List<Node> visited = new List<Node>();
+        Dictionary<Node, Node> prev = new Dictionary<Node, Node>();
+        // List<Node> adjacent = new List<Node>();
+
+        visited.Add(lastNode);
+        parents.Enqueue(lastNode);
+        prev.Add(lastNode, null);
+        Node a = null;
+        while (parents.Count() != 0)
+        {
+
+            Node parent = parents.Dequeue();
+
+            if (parent == Destination)
+            {
+
+                a = Destination;
+                if (prev[a] != null || a == lastNode)
+                {
+
+                    while (a != null)
+                    {
+
+                        if (prev[a] == lastNode)
+                        {
+
+                            break;
+                        }
+                        a = prev[a];
+
+                    }
+                }
+                Vector2 nextdir = Vector2.zero;
+                if (nextdir == Vector2.zero)
+                    nextdir = lastNode.edges[Vector2.up].destination == a ? Vector2.up : Vector2.zero;
+                if (nextdir == Vector2.zero)
+                    nextdir = lastNode.edges[Vector2.down].destination == a ? Vector2.down : Vector2.zero;
+                if (nextdir == Vector2.zero)
+                    nextdir = lastNode.edges[Vector2.left].destination == a ? Vector2.left : Vector2.zero;
+                if (nextdir == Vector2.zero)
+                    nextdir = lastNode.edges[Vector2.right].destination == a ? Vector2.right : Vector2.zero;
+
+                // Debug.Log(nextdir);
+                SetDirection(nextdir);
+                return;
+            }
+            if (parent.edges[Vector2.up].destination != null)
+                if (!visited.Contains(parent.edges[Vector2.up].destination))
+                {
+                    visited.Add(parent.edges[Vector2.up].destination);
+                    parents.Enqueue(parent.edges[Vector2.up].destination);
+                    prev.Add(parent.edges[Vector2.up].destination, parent);
+                }
+
+            if (parent.edges[Vector2.right].destination != null)
+                if (!visited.Contains(parent.edges[Vector2.right].destination))
+                {
+                    visited.Add(parent.edges[Vector2.right].destination);
+                    parents.Enqueue(parent.edges[Vector2.right].destination);
+                    prev.Add(parent.edges[Vector2.right].destination, parent);
+                }
+            if (parent.edges[Vector2.down].destination != null)
+                if (!visited.Contains(parent.edges[Vector2.down].destination))
+                {
+                    visited.Add(parent.edges[Vector2.down].destination);
+                    parents.Enqueue(parent.edges[Vector2.down].destination);
+                    prev.Add(parent.edges[Vector2.down].destination, parent);
+                }
+
+            if (parent.edges[Vector2.left].destination != null)
+                if (!visited.Contains(parent.edges[Vector2.left].destination))
+                {
+                    visited.Add(parent.edges[Vector2.left].destination);
+                    parents.Enqueue(parent.edges[Vector2.left].destination);
+                    prev.Add(parent.edges[Vector2.left].destination, parent);
+                }
+
+            // Debug.Log(visited.Count());
+            // Debug.Log(parents.Count());
+        }
+
+
+    }
     public void Astar(Node Destination)
     {
         List<Vector2> directions = lastNode.edges.Keys.ToList<Vector2>();
