@@ -113,7 +113,6 @@ public class Ghost : MonoBehaviour
             yield return null;
             if (!initilized)
             {
-
                 Target = "Init";
             }
             else
@@ -686,32 +685,22 @@ public class Ghost : MonoBehaviour
 
     public void Astar(Node Destination)
     {
-        List<Vector2> directions = lastNode.edges.Keys.ToList();
         Vector2 dir = Vector2.zero;
         float minDistance = float.MaxValue;
 
-        foreach (Vector2 availableDirection in directions)
-        {
-            Vector3 newPosition = new Vector3(lastNode.xCoordinate,lastNode.yCoordinate)+ new Vector3(availableDirection.x, availableDirection.y, 0.0f);
-            float distance = (newPosition - new Vector3(Destination.xCoordinate, Destination.yCoordinate)).sqrMagnitude;
+        foreach(KeyValuePair<Vector2, Edge> edg in lastNode.edges){
+            if(FutureOccupied(new Vector2(lastNode.xCoordinate, lastNode.yCoordinate), edg.Key)) continue;
+
+            Vector3 nextNodePos = new Vector3(edg.Value.destination.xCoordinate, edg.Value.destination.yCoordinate, 0.0f);
+            float distance = (nextNodePos - pacmanPos.position).sqrMagnitude;
             
-            if (minDistance > distance)
-            {
-                dir = availableDirection;
+            if (minDistance > distance){
+                dir = edg.Key;
                 minDistance = distance;
             }
         }
 
-        if (Occupied(dir))
-        {
-            directions.Remove(-direction);
-            SetDirection(directions[Mathf.RoundToInt(Random.Range(0, directions.Count))]);
-        }
-        else
-        {
-            SetDirection(dir);
-        }
-
+        SetDirection(dir);
     }
 
     public void simpleRandom(Node Destination)
