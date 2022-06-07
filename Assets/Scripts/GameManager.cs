@@ -302,5 +302,5 @@ public class GameManager : MonoBehaviour
 }
 public enum Difficulty
 {
-    Easy,Normal,Hard,Coup
+    Easy,Meh,Normal,Hard,Extreme,Coup
 }

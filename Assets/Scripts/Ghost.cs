@@ -33,6 +33,7 @@ public class Ghost : MonoBehaviour
     navigator navi;
     private Transform pacmanPos;
     public DestinationSelector destinator;
+    private static int naviGhost= 0;
     // Start is called before the first frame update
     void Start()
     {
@@ -48,7 +49,7 @@ public class Ghost : MonoBehaviour
         StartCoroutine(Initialize());
         StartPosition = new Vector2Int(0, 2);
     }
-    
+
     private void Update()
     {
 
@@ -67,7 +68,7 @@ public class Ghost : MonoBehaviour
         this.rigidbody.velocity = translation;
 
     }
-    
+
     private IEnumerator Initialize()
     {
         int dir = (transform.position.x - transform.parent.position.x) > 0 ? 1 : -1;
@@ -93,14 +94,14 @@ public class Ghost : MonoBehaviour
         GetComponent<AnimateGhost>().bodySprite.enabled = true;
         eaten = false;
         scared = false;
-        
+
         StartCoroutine(Navigate("Init"));
-        while (lastNode.xCoordinate != InitNode.x && lastNode.yCoordinate!= InitNode.y)
+        while (lastNode.xCoordinate != InitNode.x && lastNode.yCoordinate != InitNode.y)
         {
             yield return null;
         }
         StopCoroutine(Navigate("Init"));
-        initilized= true;
+        initilized = true;
         yield return null;
         StartCoroutine(Navigate());
 
@@ -118,7 +119,6 @@ public class Ghost : MonoBehaviour
             }
             else
                 Target = "Pacman";
-            
             if (Target == "Pacman" && eaten)
             {
                 Target = "Start";
@@ -126,7 +126,10 @@ public class Ghost : MonoBehaviour
             switch (GameManager.Instance.difficulty)
             {
                 case Difficulty.Easy:
-                    navi = bellman;
+                    navi = randDir;
+                    break;
+                case Difficulty.Meh:
+                    navi = BFS;
                     break;
                 case Difficulty.Normal:
                     navi = Astar;
@@ -134,12 +137,21 @@ public class Ghost : MonoBehaviour
                 case Difficulty.Hard:
                     navi = Dijkstra;
                     break;
+                case Difficulty.Extreme:
+                    navi = bellman;
+                    break;
                 case Difficulty.Coup:
-                    navi = BFS;
+                    if (Target == "Pacman")
+                    {
+                        navi = Coup;
+                    }
+                    else
+                        navi = Dijkstra;
                     break;
                 default:
                     yield break;
             }
+            if(navi!=Coup)
             switch (Target)
             {
                 case "Pacman":
@@ -232,20 +244,40 @@ public class Ghost : MonoBehaviour
                     break;
             }
 
-            
+
             if (destinationNode == null)
             {
 
                 destinationNode = GameManager.Instance.pacman.lastNode;
             }
 
-            if (Physics2D.BoxCast(this.transform.position, Vector2.one * 0.75f, 0.0f, direction, 5f, LayerMask.NameToLayer("Pacman")).collider != null&&!(scared||eaten))
+            if (Physics2D.BoxCast(this.transform.position, Vector2.one * 0.75f, 0.0f, direction, 5f, LayerMask.NameToLayer("Pacman")).collider != null && !(scared || eaten))
             {
                 destinationNode = GameManager.Instance.pacman.destinationNode;
             }
-            if (navi != null && !scared)
+            
+            if ((navi == Coup )&&( name == GameManager.Instance.ghostParent.GetChild(GameManager.Instance.ghostParent.childCount - 1).name))
             {
+                if (scared || eaten)
+                {
+                    foreach (var g in GameManager.Instance.ghostParent.GetComponentsInChildren<Ghost>())
+                    {
+                        if (!(g.scared || g.eaten))
+                        {
+                            g.navi = Coup;
+                            g.navi(destinationNode);
+                            break;
+                        }
+                    }
+                }
+                else
+                    navi(destinationNode);
+            }
+            else if (navi != null && !scared&&navi!=Coup)
+            {
+
                 navi(destinationNode);
+                
             }
         }
     }
@@ -254,7 +286,7 @@ public class Ghost : MonoBehaviour
     {
         SetDirection(Vector2.up);
     }
-    
+
     public void MoveDown()
     {
         SetDirection(Vector2.down);
@@ -355,6 +387,9 @@ public class Ghost : MonoBehaviour
             yield return null;
             SetDirection(Vector2.down);
         }
+        SetDirection(Vector2.up);
+        eaten = false;
+        scared = false;
 
     }
 
@@ -373,9 +408,8 @@ public class Ghost : MonoBehaviour
                 availDirs.Remove(-direction);
                 if (availDirs.Count > 0)
                 {
-                    
+
                     Vector2 dir = availDirs[Mathf.RoundToInt(Random.Range(0, availDirs.Count))];
-                    Debug.Log(name + dir.ToString());
                     SetDirection(dir);
                 }
             }
@@ -455,8 +489,6 @@ public class Ghost : MonoBehaviour
 
         var src = lastNode;
         var dst = Destination;
-
-        // Debug.Log("Bellman");
 
         Dictionary<(double, double), double> dist = new Dictionary<(double, double), double>(); // distance
         Dictionary<(double, double), Node> pred = new Dictionary<(double, double), Node>(); // preceding node for each node
@@ -539,7 +571,6 @@ public class Ghost : MonoBehaviour
             {
                 if (!shortestPathSet.ContainsKey(N) && DistanceSet[N] <= min)
                 {
-
                     min = DistanceSet[N];
                     minNode = N;
                 }
@@ -549,7 +580,6 @@ public class Ghost : MonoBehaviour
                 shortestPathSet.Add(minNode, true);
                 foreach (Node N in GameManager.Instance.map.nodes)
                 {
-
                     Edge e = null;
                     if (minNode.edges.Count < 4)
                         continue;
@@ -573,28 +603,74 @@ public class Ghost : MonoBehaviour
                         DistanceSet[N] = DistanceSet[minNode] + e.cost;
                     }
                 }
-
             }
         }
         Node a = Destination;
-        while (a!=null &&pathDict[a] != lastNode)
+        while (a != null && pathDict.ContainsKey(a)&&pathDict[a] != lastNode)
         {
             a = pathDict[a];
         }
         Vector2 dir = Vector2.zero;
-        if (dir == Vector2.zero)
+        if (dir == Vector2.zero&&lastNode.edges.ContainsKey(Vector2.up))
             dir = lastNode.edges[Vector2.up].destination == a ? Vector2.up : Vector2.zero;
-        if (dir == Vector2.zero)
+        if (dir == Vector2.zero && lastNode.edges.ContainsKey(Vector2.down))
             dir = lastNode.edges[Vector2.down].destination == a ? Vector2.down : Vector2.zero;
-        if (dir == Vector2.zero)
+        if (dir == Vector2.zero && lastNode.edges.ContainsKey(Vector2.left))
             dir = lastNode.edges[Vector2.left].destination == a ? Vector2.left : Vector2.zero;
-        if (dir == Vector2.zero)
+        if (dir == Vector2.zero && lastNode.edges.ContainsKey(Vector2.right))
             dir = lastNode.edges[Vector2.right].destination == a ? Vector2.right : Vector2.zero;
         SetDirection(dir);
-
-
     }
 
+    private float CostDijkstra(Node Source, Node Destination)
+    {
+        Vector2 nextDir = Vector2.zero;
+        Dictionary<Node, float> DistanceSet = new Dictionary<Node, float>();
+        Dictionary<Node, bool> shortestPathSet = new Dictionary<Node, bool>();
+        foreach (Node n in GameManager.Instance.map.nodes)
+        {
+            DistanceSet.Add(n, float.MaxValue);
+        }
+        DistanceSet[lastNode] = 0;
+        foreach (Node n in GameManager.Instance.map.nodes)
+        {
+            Node minNode = null;
+            float min = float.MaxValue;
+            foreach (Node N in GameManager.Instance.map.nodes)
+            {
+                if (!shortestPathSet.ContainsKey(N) && DistanceSet[N] <= min)
+                {
+                    min = DistanceSet[N];
+                    minNode = N;
+                }
+            }
+            if (minNode != null)
+            {
+                shortestPathSet.Add(minNode, true);
+                if (minNode == Destination)
+                    return DistanceSet[Destination];
+                foreach (Node N in GameManager.Instance.map.nodes)
+                {
+                    Edge e = null;
+                    if (minNode.edges.Count < 4)
+                        continue;
+                    if (e == null)
+                        e = minNode.edges[Vector2.up].destination == N ? minNode.edges[Vector2.up] : null;
+                    if (e == null)
+                        e = minNode.edges[Vector2.down].destination == N ? minNode.edges[Vector2.down] : null;
+                    if (e == null)
+                        e = minNode.edges[Vector2.left].destination == N ? minNode.edges[Vector2.left] : null;
+                    if (e == null)
+                        e = minNode.edges[Vector2.right].destination == N ? minNode.edges[Vector2.right] : null;
+                    if (!shortestPathSet.ContainsKey(N) && e != null && DistanceSet[minNode] != float.MaxValue && e.cost + DistanceSet[minNode] < DistanceSet[N])
+                    {
+                        DistanceSet[N] = DistanceSet[minNode] + e.cost;
+                    }
+                }
+            }
+        }
+        return float.MaxValue;
+    }
     public void BFS(Node Destination)
     {
 
@@ -681,8 +757,128 @@ public class Ghost : MonoBehaviour
 
     public void Coup(Node Destination)
     {
+        Dictionary<Ghost, (float, bool)> ghosts = new Dictionary<Ghost, (float, bool)>();
+        foreach (Ghost g in transform.parent.GetComponentsInChildren<Ghost>())
+        {
+            if (g.scared || g.eaten||!g.initilized)
+                continue;
+            ghosts.Add(g, (float.MaxValue, false));
+        }
+        List<Vector2> availDirs = new List<Vector2>();
+        foreach (var edge in GameManager.Instance.pacman.destinationNode.edges)
+        {
+            if (edge.Value.destination != null)
+                availDirs.Add(edge.Key);
+        }
+        Destination = GameManager.Instance.pacman.destinationNode;
+        (Ghost, float, bool) min = (null, float.MaxValue, false);
+        int gCount = ghosts.Count;
+        int aCount = availDirs.Count;
+        switch (aCount)
+        {
+            case 4:
+                while (availDirs.Count>0&&gCount>0)
+                {
+                    for (int j = 0; j < gCount; j++)
+                    {
+                        if (availDirs.Count < 0)
+                        {
+                            break;
+                        }
+                        if (!ghosts[ghosts.Keys.ToArray()[j]].Item2)
+                            ghosts[ghosts.Keys.ToArray()[j]] = (CostDijkstra(ghosts.Keys.ToArray()[j].lastNode, Destination.edges[availDirs[0]].destination), false);
+                        if (min.Item2 > ghosts[ghosts.Keys.ToArray()[j]].Item1)
+                        {
+                            min = (ghosts.Keys.ToArray()[j], ghosts[ghosts.Keys.ToArray()[j]].Item1, ghosts[ghosts.Keys.ToArray()[j]].Item2);
+                        }
+                    }
+                    min.Item1.Dijkstra(Destination.edges[availDirs[0]].destination);
+                    ghosts[min.Item1] = (min.Item2, true);
+                    gCount--;
+                    availDirs.Remove(availDirs[0]);
+                }
+                if (gCount > 0)
+                {
+                    foreach (var g in ghosts)
+                    {
+                        if (!g.Value.Item2)
+                        {
+                            g.Key.Dijkstra(Destination);
+                        }
+                    }
+                }
+                break;
+            case 3:
+                while (availDirs.Count > 0 && gCount > 0)
+                {
+                    for (int j = 0; j < gCount; j++)
+                    {
+                        if (availDirs.Count < 0)
+                        {
+                            break;
+                        }
+                        if (!ghosts[ghosts.Keys.ToArray()[j]].Item2)
+                            ghosts[ghosts.Keys.ToArray()[j]] = (CostDijkstra(ghosts.Keys.ToArray()[j].lastNode, Destination.edges[availDirs[0]].destination), false);
+                        if (min.Item2 > ghosts[ghosts.Keys.ToArray()[j]].Item1)
+                        {
+                            min = (ghosts.Keys.ToArray()[j], ghosts[ghosts.Keys.ToArray()[j]].Item1, ghosts[ghosts.Keys.ToArray()[j]].Item2);
+                        }
+                    }
+                    min.Item1.Dijkstra(Destination.edges[availDirs[0]].destination);
+                    ghosts[min.Item1] = (min.Item2, true);
+                    gCount--;
+                    if (ghosts.Count > 1)
+                        availDirs.Remove(availDirs[0]);
+                }
+                if (gCount > 0)
+                {
+                    foreach (var g in ghosts)
+                    {
+                        if (!g.Value.Item2)
+                        {
+                            g.Key.Dijkstra(Destination);
+                        }
+                    }
+                }
 
-    }
+                break;
+            case 2:
+                while (availDirs.Count > 0 && gCount > 0)
+                {
+                    for (int j = 0; j < gCount; j++)
+                    {
+                        if (availDirs.Count < 0)
+                        {
+                            break;
+                        }
+                        if (!ghosts[ghosts.Keys.ToArray()[j]].Item2)
+                            ghosts[ghosts.Keys.ToArray()[j]] = (CostDijkstra(ghosts.Keys.ToArray()[j].lastNode, Destination.edges[availDirs[0]].destination), false);
+                        if (min.Item2 > ghosts[ghosts.Keys.ToArray()[j]].Item1)
+                        {
+                            min = (ghosts.Keys.ToArray()[j], ghosts[ghosts.Keys.ToArray()[j]].Item1, ghosts[ghosts.Keys.ToArray()[j]].Item2);
+                        }
+                    }
+                    min.Item1.Dijkstra(Destination.edges[availDirs[0]].destination);
+                    ghosts[min.Item1] = (min.Item2, true);
+                    gCount--;
+                    if (ghosts.Count % 2 == 0 )
+                            availDirs.Remove(availDirs[0]);
+                   
+                }
+                if (gCount > 0)
+                {
+                    foreach (var g in ghosts)
+                    {
+                        if (!g.Value.Item2)
+                        {
+                            g.Key.Dijkstra(Destination);
+                        }
+                    }
+                }
+
+                break;
+        }
+        }
 
     public void Astar(Node Destination)
     {
@@ -692,9 +888,9 @@ public class Ghost : MonoBehaviour
 
         foreach (Vector2 availableDirection in directions)
         {
-            Vector3 newPosition = new Vector3(lastNode.xCoordinate,lastNode.yCoordinate)+ new Vector3(availableDirection.x, availableDirection.y, 0.0f);
+            Vector3 newPosition = new Vector3(lastNode.xCoordinate, lastNode.yCoordinate) + new Vector3(availableDirection.x, availableDirection.y, 0.0f);
             float distance = (newPosition - new Vector3(Destination.xCoordinate, Destination.yCoordinate)).sqrMagnitude;
-            
+
             if (minDistance > distance)
             {
                 dir = availableDirection;
