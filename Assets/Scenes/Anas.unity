@@ -2814,7 +2814,7 @@ MonoBehaviour:
   pelletPoints: 10
   powerPelletPoints: 1000
   SCORE: 0
-  difficulty: 1
+  difficulty: 4
 --- !u!4 &336949862
 Transform:
   m_ObjectHideFlags: 0
@@ -9865,9 +9865,13 @@ PrefabInstance:
   m_Modification:
     m_TransformParent: {fileID: 79264616}
     m_Modifications:
+    - target: {fileID: 8495015922858011267, guid: fe344fecd765d2748887579d082a9a1f, type: 3}
+      propertyPath: m_Enabled
+      value: 1
+      objectReference: {fileID: 0}
     - target: {fileID: 8495015922858011512, guid: fe344fecd765d2748887579d082a9a1f, type: 3}
       propertyPath: m_Name
-      value: Ghost
+      value: Anas
       objectReference: {fileID: 0}
     - target: {fileID: 8495015922858011512, guid: fe344fecd765d2748887579d082a9a1f, type: 3}
       propertyPath: m_IsActive
