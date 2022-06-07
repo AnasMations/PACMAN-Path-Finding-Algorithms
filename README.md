@@ -6,3 +6,5 @@
 - A Star
 - BFS
 - Collaborative Dijkstra
+
+![PACMAN](https://raw.githubusercontent.com/AnasMations/PACMAN/main/Assets/pacman%20game.PNG)
