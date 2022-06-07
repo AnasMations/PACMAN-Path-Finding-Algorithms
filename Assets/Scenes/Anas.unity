@@ -9339,6 +9339,10 @@ PrefabInstance:
       value: Ghost (3)
       objectReference: {fileID: 0}
     - target: {fileID: 8495015922858011513, guid: fe344fecd765d2748887579d082a9a1f, type: 3}
+      propertyPath: m_Enabled
+      value: 0
+      objectReference: {fileID: 0}
+    - target: {fileID: 8495015922858011513, guid: fe344fecd765d2748887579d082a9a1f, type: 3}
       propertyPath: startNodeCoordinates.x
       value: 1.5
       objectReference: {fileID: 0}
@@ -9425,7 +9429,7 @@ PrefabInstance:
       objectReference: {fileID: 0}
     - target: {fileID: 8495015922858011513, guid: fe344fecd765d2748887579d082a9a1f, type: 3}
       propertyPath: m_Enabled
-      value: 1
+      value: 0
       objectReference: {fileID: 0}
     - target: {fileID: 8495015922858011513, guid: fe344fecd765d2748887579d082a9a1f, type: 3}
       propertyPath: startNodeCoordinates.x
@@ -9510,7 +9514,7 @@ PrefabInstance:
       objectReference: {fileID: 0}
     - target: {fileID: 8495015922858011513, guid: fe344fecd765d2748887579d082a9a1f, type: 3}
       propertyPath: m_Enabled
-      value: 1
+      value: 0
       objectReference: {fileID: 0}
     - target: {fileID: 8495015922858011513, guid: fe344fecd765d2748887579d082a9a1f, type: 3}
       propertyPath: startNodeCoordinates.x
