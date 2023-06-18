@@ -3,8 +3,8 @@
 #### **Algorithms implemented for the ghosts:**
 - Dijkstra
 - Bellman ford
-- A Star
 - BFS
+- A star
 - Collaborative Dijkstra
 
 ![PACMAN](https://raw.githubusercontent.com/AnasMations/PACMAN/main/Assets/pacman%20game.PNG)
